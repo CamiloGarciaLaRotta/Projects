@@ -10,97 +10,94 @@ public class tester {
 			
 									/////// General variable initializations ///////
 			
-			
-			
-			//output INT part
-			java.util.ArrayList<Short> intOutput = new java.util.ArrayList<Short>();
-			//output nonREP part
+      java.util.ArrayList<Short> intOutput = new java.util.ArrayList<Short>();
 			java.util.ArrayList<Short> nRepOutput = new java.util.ArrayList<Short>();
-			//output REP part
 			java.util.ArrayList<Short> repOutput = new java.util.ArrayList<Short>();
 			//output BASE
 			java.util.ArrayList<Short> B = new java.util.ArrayList<Short>();
-			B.add(Base);
-			//output BASE in base A
+			
+      B.add(Base);
+			
+      // Output BASE in base A
 			java.util.ArrayList<Short> BinA = new java.util.ArrayList<Short>();
 			short BtoConv = Base;
-			while(BtoConv>0){
+			
+      while(BtoConv>0){
 				BinA.add((short) (BtoConv%A.Base));
 				BtoConv/=A.Base;
 			}
 			
-			//the following variables will be used in the three different sections
+			// The following variables will be used in the three different sections
 			
-			//tmp remainder, before division its zero
+			// Tmp remainder, before division its zero
 			java.util.ArrayList<Short> tmpR = new java.util.ArrayList<Short>();
-			//tmp result of the multiplication between ratio and divisor		//IF TIME FIX SO ITS NOT NECESSARY
+			// Tmp result of the multiplication between ratio and divisor
 			java.util.ArrayList<Short> tmpMult = new java.util.ArrayList<Short>();
-			//tmp result of the division
+			// Tmp result of the division
 			java.util.ArrayList<Short> tmpDiv = new java.util.ArrayList<Short>();
-			//tmp dividend, before division its the int part of A
+			// Tmp dividend, before division its the int part of A
 			java.util.ArrayList<Short> dividend = new java.util.ArrayList<Short>();
 			
 											/////// handle INT part ///////
 			
-			//division starts with remainder zero
+			// Division starts with remainder zero
 			tmpR.add((short) 0);
-			//set dividend to be INT part
+			
+      // Set dividend to be INT part
 			for(int i=0;i<A.Int.length;i++){
 				dividend.add(A.Int[i]);
 			}
 			
-			//transformation of (X)-B into (U)-R
+			// Transformation of (X)-B into (U)-R
 			do{	
 				tmpR.clear(); tmpMult.clear(); tmpDiv.clear();	
-				tmpDiv = ((divide(dividend,BinA,A.Base)));		//calculate ratio     //TRY WITH DIVISOR 2 DIGITS
+				tmpDiv = ((divide(dividend,BinA,A.Base)));		// Calculate ratio
 				tmpMult = (multiply(tmpDiv,BinA,A.Base));		
-				tmpR = (substract(dividend,tmpMult,A.Base));	//calculate reminder
-				//because the remainder will be short
-				//we pass it to the final base through 
-				//standard base 10 intermidiate process
-				intOutput.add(convert(tmpR,A.Base));			//add reminder to output
+				tmpR = (substract(dividend,tmpMult,A.Base));	// Calculate reminder
+
+				// Because the remainder will be short
+				// We pass it to the final base through 
+				// Standard base 10 intermidiate process
+				
+        intOutput.add(convert(tmpR,A.Base));			// Add reminder to output
 				dividend.clear();
 				for(int i=0;i<tmpDiv.size();i++){
-					dividend.add(tmpDiv.get(i));				//update dividend
+					dividend.add(tmpDiv.get(i));				// Update dividend
 				}
 			}while(countNonNull(tmpDiv)>0);
 			
 											/////// handle FRACTIONAL part ///////
 			
-			//I will approximate the fractional values by
-			//multiplying the number by the base and obtaining 
-			//a remainder and and Integer part. The list of
-			//int's will result in the fractional part.
-			//I will keep track of the remainders, for as soon
-			//as we obtain the same dividend we know the numbers
-			//following that point are repeated
+			// I will approximate the fractional values by
+			// multiplying the number by the base and obtaining 
+			// a remainder and and Integer part. The list of
+			// int's will result in the fractional part.
+			// I will keep track of the remainders, for as soon
+			// as we obtain the same dividend we know the numbers
+			// following that point are repeated
 			
-			//we don't take the countNonNull because a zero value after 
-			//the comma doesn't mean the same as a zero before the comma
+			// We don't take the countNonNull because a zero value after 
+			// the comma doesn't mean the same as a zero before the comma
 			short aDigits = (short) A.NonRep.length;
 			
-			//ArrayList array which will contain all 
-			//fractions to help find the REP reminder
+			// ArrayList array which will contain all 
+			// fractions to help find the REP reminder
 			java.util.ArrayList<Short>[] tmpRep = new java.util.ArrayList[(int) Math.pow(A.Base, aDigits)];
 			
-			//division starts with remainder zero
+			// Division starts with remainder zero
 			tmpR.clear(); tmpMult.clear();
 			tmpR.add((short) 0);
 			
-			//set tmpMult to be fractional part
+			// Set tmpMult to be fractional part
 			for(int i=0;i<A.NonRep.length;i++){
 				tmpMult.add(A.NonRep[i]);
 			}
 			
-			//position counter of Rep
-			int pos = 0;
-			//will store pos of first iteration of REP
-			int repPos=0;
-			//if repetition occurred
+			// Initialize variables
+      int pos = 0;
+      int repPos=0;
 			boolean rep = false;
-			//digit to subtract from fraction
 			short tmpDigit = 0;
-			
 			
 			System.out.println(" Base : "+ BinA);
 			System.out.println(" Input [ "+ A.NonRep.length +" ]  : "+ tmpMult+"\n----------------------\n");
@@ -108,17 +105,22 @@ public class tester {
 			do{
 				tmpMult = (multiply(tmpMult, BinA, A.Base));
 				System.out.println(" Mult : " + tmpMult);
-				nRepOutput.add(0, cut(tmpMult, aDigits, A.Base));			//obtain int part
+				
+        nRepOutput.add(0, cut(tmpMult, aDigits, A.Base));			// Obtain int part
 				System.out.println(" nRepOutput : " + nRepOutput);
-				tmpDigit = cut(tmpMult, aDigits, A.Base);						//used to subtract digit from fraction
+				
+        tmpDigit = cut(tmpMult, aDigits, A.Base);						// Used to subtract digit from fraction
 				System.out.println(" tmpDigit : " + tmpDigit);
-				for(int i=aDigits;i<tmpMult.size();i++){
+				
+        for(int i=aDigits;i<tmpMult.size();i++){
 					tmpMult.set(i, (short)0);
 				}
-				System.out.println(" Mult : " + tmpMult);
-				//add result to the remainder array
-				tmpRep[pos] = tmpMult; pos++;						//store fraction
-				//check if repetition occurs
+        System.out.println(" Mult : " + tmpMult);
+
+				// Add result to the remainder array
+				tmpRep[pos] = tmpMult; pos++;				
+				
+        //check if repetition occurs
 				for(int i=0;i<pos-1;i++){
 					if(equals(tmpRep[i],tmpRep[pos-1])) rep = true;
 					repPos = i;
@@ -126,27 +128,29 @@ public class tester {
 			}while(!rep);
 		
 			
-			
 			System.out.println("nRepOutput: "+ nRepOutput +  "\n----------------\nEND nREP");
 			
 												/////// output ///////
 			
-			//create output object
+			// Create output object
 			Number C=new Number(); C.Base=Base; C.Int= new short[intOutput.size()]; 
 			C.NonRep=new short[pos-repPos]; C.Rep=new short[repPos]; 
 			
-			//fill its attributes
+			// Fill its attributes
 			for(int j=0;j<C.Int.length;j++){
 				C.Int[j]=intOutput.get(j);
 			}
+
 			int n = 0;
+
 			for(int j=nRepOutput.size()-1;j>=repPos;j--){
-				C.NonRep[C.NonRep.length-1-n]=nRepOutput.get(j); n++;
+				C.NonRep[C.NonRep.length-1-n] = nRepOutput.get(j); n++;
 			}
+
 			n=0;
+
 			for(int j=repPos-1;j>=0;j--){
-				//C.Rep[j]=nRepOutput.get(j);
-				C.Rep[n]=nRepOutput.get(j); n++;
+					C.Rep[n]=nRepOutput.get(j); n++;
 			}
 			
 			return C;
@@ -162,7 +166,7 @@ public class tester {
 			return output;
 		}
 
-						//////////////////////////HELPER METHODS//////////////////////////
+						//////// PERSONAL Helper Methods ////////
 		
 		//---- ( A / B ) in any base ----//
 		public java.util.ArrayList<Short> divide(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B, short base) {
@@ -175,53 +179,57 @@ public class tester {
 				java.util.ArrayList<Short> tmpDiv = new java.util.ArrayList<Short>();
 				
 				short bDigits = (short) countNonNull(B);
-				short posA = 0;					//position of tmpDiv digits
+				short posA = 0;					// Position of tmpDiv digits
 				
-				//build tmp dividend with same size as B from bigger digit to smaller
+				// Build tmp dividend with same size as B from bigger digit to smaller
 				for(int i=0;i<bDigits;i++){ 		
 					tmpDiv.add(0, (A.get(A.size()-1-posA))); posA++;
 				}
+
 				boolean nextDigit = true;
-				do{
+				
+        do{
 					if(posA>=A.size()) nextDigit =false;
 					else{					
-						//only 2 possibilities: B is either smaller than adigits or adigits-1
+						// Only 2 possibilities: B is either smaller than adigits or adigits-1
 						while(larger(B,tmpDiv)) {
 							posA++; 
 							tmpDiv.add(0, (A.get(A.size()-posA))); 
 						}	
 					}
+
 					for(short j=(short)(base-1);j>=0;j--){
-						//to be able to use only one multiplier method
-						//we user a dummy wrapper for j
+						// To be able to use only one multiplier method
+						// wWe user a dummy wrapper for j
 						dummyJ.clear();
 						dummyJ.add(j);
-						tmpMult = multiply(B, dummyJ, base);    //SHOULD BE 2 4 BUT TMPDIV is 4 2
-						//verify if j is biggest multiplier
-						if(larger(tmpDiv, tmpMult)||equal(tmpDiv, tmpMult)){
+						tmpMult = multiply(B, dummyJ, base);  
+						
+            // Verify if j is biggest multiplier
+						if(larger(tmpDiv, tmpMult) || equal(tmpDiv, tmpMult)){
 							tmpDiv = (substract(tmpDiv, tmpMult, base));
 							output.add(j);
 							break;
 							
 						}
 					}
-					//test if we can still add digits
-					if (nextDigit && posA!=A.size()) {
+					// Test if we can still add digits
+					if (nextDigit && posA != A.size()) {
 						posA++;
-						tmpDiv.add(0, (A.get(A.size()-posA))); 
+						tmpDiv.add(0, (A.get(A.size() - posA))); 
 					}else break;
 				}while(nextDigit); 
 			}
 			
-			//output was added in descending order, it needs to be reversed
+			// Output was added in descending order, it needs to be reversed
 			reverse(output);
 			return output;
 		}
 		
 		//---- ( A * B ) in any base ----//
 		public java.util.ArrayList<Short> multiply(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B, short base) {
-			//max possible size of multiplication is 2*max digits
-			java.util.ArrayList<Short> output = new java.util.ArrayList<Short>(2*A.size());
+			// Max possible size of multiplication is 2*max digits
+			java.util.ArrayList<Short> output = new java.util.ArrayList<Short>(2 * A.size());
 			for(int i=0;i<2*A.size();i++){
 				output.add((short) 0);
 			}
@@ -234,14 +242,15 @@ public class tester {
 				carry=0;
 				tmpMult.clear();
 				for(int i=0;i<A.size();i++){
-					//add necessary zeros at beginning of tmp
+					// Add necessary zeros at beginning of tmp
 					if(i==0)for(int k=0;k<j;k++) tmpMult.add((short) 0);
+					
 					prod = (short) ((A.get(i) * B.get(j)) + carry);
 					tmpMult.add((short) (prod%base));
 					carry=(short) (prod/base);
 				}
 				tmpMult.add(carry);
-				//to save space add immidiately to output
+				// To save space add immidiately to output
 				output = add(tmpMult,output,base);
 			}					
 			
@@ -250,33 +259,35 @@ public class tester {
 		
 		//---- ( A + B ) in any base ----//
 		private java.util.ArrayList<Short> add(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B, short base) {
-			java.util.ArrayList<Short> output = new java.util.ArrayList<Short>(2*A.size());
+			java.util.ArrayList<Short> output = new java.util.ArrayList<Short>(2 * A.size());
 			
 			short carry = 0;
-			//choose max amount of places in addition
+			// Choose max amount of places in addition
 			int ADigits = countNonNull(A); int BDigits = countNonNull(B);
 			
-			//redundant code, shall clean if time allows it
-			//same operations, different digit sizes
+			// Redundant code, shall clean if time allows it
+			// Same operations, different digit sizes
 			if(ADigits>=BDigits){
 				for(int i=0;i<ADigits;i++){
-					if(i<B.size()){ //if there are still digits in B
-						output.add((short) ((A.get(i)+B.get(i)+carry)%base));
-						carry = (short) ((A.get(i)+B.get(i)+carry)/base);
+
+					// If there are still digits in B
+          if(i<B.size()){  
+						output.add((short) ((A.get(i) + B.get(i) + carry) % base));
+						carry = (short) ((A.get(i) + B.get(i) + carry) / base);
 					}else{
-						output.add((short) ((A.get(i)+carry)%base));
-						carry = (short) ((A.get(i)+carry)/base);
+						output.add((short) ((A.get(i) + carry) % base));
+						carry = (short) ((A.get(i) + carry) / base);
 					}
 				}
 				output.add(carry);
 			}else{
 				for(int i=0;i<BDigits;i++){
-					if(i<A.size()){ //if there are still digits in A
-						output.add((short) ((A.get(i)+B.get(i)+carry)%base));
-						carry = (short) ((A.get(i)+B.get(i)+carry)/base);
+					if(i<A.size()){ // If there are still digits in A
+						output.add((short) ((A.get(i) + B.get(i) + carry) % base));
+						carry = (short) ((A.get(i) + B.get(i) + carry) / base);
 					}else{
-						output.add((short) ((B.get(i)+carry)%base));
-						carry = (short) ((B.get(i)+carry)/base);
+						output.add((short) ((B.get(i) + carry) % base));
+						carry = (short) ((B.get(i) + carry) / base);
 					}
 				}
 				output.add(carry);
@@ -288,61 +299,68 @@ public class tester {
 		//---- ( A - B ) in any base  ----//
 		public java.util.ArrayList<Short> substract(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B, short base){
 			java.util.ArrayList<Short> output= new java.util.ArrayList<Short>();
-			//to make code uniform and not modify A
+			// To make code uniform and not modify A
 			java.util.ArrayList<Short> tmpA= new java.util.ArrayList<Short>();
 			for(int i=0;i<A.size();i++){
 				tmpA.add(A.get(i));
 			}
+
 			short aDigits = (short) countNonNull(tmpA);
 			short bDigits = (short) countNonNull(B);
-			//max digits for loop
+			
+      // Max digits for loop
 			short maxDigits =  (aDigits > bDigits) ? aDigits : bDigits;
 			short tmpResult = 0;
-			//The following takes into account 3 diff scenarios
-			//Not clean code, will review if time allows
+			
+      // The following takes into account 3 diff scenarios
+			// Not clean code, will review if time allows
 			for(int i=0;i<maxDigits;i++){
 				if(aDigits>bDigits){
 					if(i<bDigits){
-						//if needed to borrow
+						
+            // If needed to borrow
 						while(tmpA.get(i)<B.get(i)){
 							borrow(tmpA, base, i);		
 						}
-						tmpResult =(short)  ( ( tmpA.get(i)-B.get(i) ));
-						//if  needed to borrow, substraction might exceed base
-						//the 10-answer is the same diff from the base and the actual answer
+            tmpResult =(short)  ( ( tmpA.get(i) - B.get(i) ));
+						
+            // If  needed to borrow, substraction might exceed base
+						// the 10-answer is the same diff from the base and the actual answer
 						if( tmpResult>base-1) tmpResult=(short) (base-(10-tmpResult));	
 						output.add(tmpResult);	
 					}else{
-						//because no more digits in B, result is simply tmpA
+						// Because no more digits in B, result is simply tmpA
 						output.add((short) ((tmpA.get(i))));
 					}
 				}else if(aDigits==bDigits){
 					if(i<aDigits-1){
-						//if needed to borrow
+						// If needed to borrow
 						while(tmpA.get(i)<B.get(i)){
 							borrow(tmpA, base, i);		
 						}					
 					}
 					tmpResult =(short)  ( ( tmpA.get(i)-B.get(i) ));
-					//if  needed to borrow, substraction might exceed base
-					//the 10-answer is the same diff from the base and the actual answer
+
+					// If  needed to borrow, substraction might exceed base
+					// The 10-answer is the same diff from the base and the actual answer
 					if( tmpResult>base-1)tmpResult=(short) (base-(10-tmpResult));
 					output.add(tmpResult);	
 				}else{
 					if(i<aDigits-1){
-						//if needed to borrow
+						// If needed to borrow
 						while(tmpA.get(i)<B.get(i)){
 							borrow(tmpA, base, i);
 						}
 						tmpResult =(short)  ( ( tmpA.get(i)-B.get(i) ));
-						//if  needed to borrow, substraction might exceed base
-						//the 10-answer is the same diff from the base and the actual answer
+
+						// If  needed to borrow, substraction might exceed base
+						// The 10-answer is the same diff from the base and the actual answer
 						if( tmpResult>base-1)tmpResult=(short) (base-(10-tmpResult));
 						output.add(tmpResult);	 				
 					}else if(i<aDigits){
 						output.add((short) ((tmpA.get(i)-B.get(i))));
 					}else{
-						//because no more digits in tmpA, result is simply -B
+						// Because no more digits in tmpA, result is simply -B
 						output.add((short) (((-1)*B.get(i))));
 					}
 				}
@@ -351,34 +369,37 @@ public class tester {
 			return output;
 			}
 		
-		//During substraction, borrow from higher value position
+		// During substraction, borrow from higher value position
 		private void borrow(java.util.ArrayList<Short> A, short base, int i) {
 			
 			int n = 0;
-			//find first non zero digit to borrow from
+			// Find first non zero digit to borrow from
 			while(i+n+1<A.size()&&A.get(i+n+1)==0) n++;
 			
 			do{
-				//reduce the bigger digit by 1
+				// Reduce the bigger digit by 1
 				if(base>9){
-					A.set((i+n+1), (short) ( ( A.get( ( i+n+1) ) ) -1 ) );   
-					A.set((i+n), (short) ((A.get((i+n)))+1*Math.pow(base, n+1))); //add the digit to the needed position	
+					A.set((i+n+1), (short) ( ( A.get( ( i+n+1) ) ) -1 ) );
+					// Add the digit to the needed position	
+					A.set((i+n), (short) ((A.get((i+n)))+1*Math.pow(base, n+1))); 
 				}else{
-					if(A.get(i+n+1)==10) A.set((i+n+1), (short) (base-1)); //10 is always equals to the base
-					else A.set((i+n+1), (short) ( ( A.get( ( i+n+1) ) ) -1 ) ); //if not 10 just reduce by 1   
-					A.set((i+n), (short) ((A.get((i+n)))+10)); //add the digit to the needed position	
+					if(A.get(i+n+1)==10) A.set((i+n+1), (short) (base-1)); 
+					else A.set((i+n+1), (short) ( ( A.get( ( i+n+1) ) ) -1 ) ); // iIf not 10 just reduce by 1
+					// Add the digit to the needed position	
+					A.set((i+n), (short) ((A.get((i + n))) + 10)); 
 				}
 				n--;
 			}while(n>0); 
 						
 		}
 
-		// verify if A > B
+		// Verify if A > B
 		public boolean larger(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B) {
-			//two fastest to check cases to save time
+			// Two fastest to check cases to save time
 			if(countNonNull(A)>countNonNull(B))	return true;
 			if(countNonNull(A)<countNonNull(B))	return false;
-			//if not above, we go through the ArrayLists
+			
+			// If not above, we go through the ArrayLists
 			for(int i=countNonNull(A)-1;i>=0;i--){
 				if(A.get(i)>B.get(i)) return true;
 				if(A.get(i)<B.get(i)) return false;
@@ -386,28 +407,28 @@ public class tester {
 			return false;
 		}
 		
-		// verify if A == B
+		// Verify if A == B
 		public boolean equal(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B) {
-			if(countNonNull(A)!=countNonNull(B))	return false;
+			if(countNonNull(A) != countNonNull(B))	return false;
 			for(int i=countNonNull(A)-1;i>=0;i--){
-				if(A.get(i)!=B.get(i)) return false;
+				if(A.get(i) != B.get(i)) return false;
 			}
 			return true;
 		}
 		
 		public boolean equals(java.util.ArrayList<Short> A, java.util.ArrayList<Short> B) {
-			if(countNonNull(A)!=countNonNull(B))	return false;
+			if(countNonNull(A) != countNonNull(B))	return false;
 			for(int i=0;i<countNonNull(A);i++){
-				if(A.get(i)!=B.get(i)) return false;
+				if(A.get(i) != B.get(i)) return false;
 			}
 			return true;
 		}
 
-		// count amount of non-null greater than zero entries in A
+		// Count amount of non-null greater than zero entries in A
 		public int countNonNull(java.util.ArrayList<Short> A){
-			//we go through the the ArrayList backwards
-			//counting nulls or zeroes, at the first 
-			//occurrence of a non-zero the counter stops
+			// We go through the the ArrayList backwards
+			// counting nulls or zeroes, at the first 
+			// occurrence of a non-zero the counter stops
 			int n=0;
 			for(int i=A.size()-1;i>=0;i--){
 		        if (A.get(i)==null||A.get(i)==0) n++;
@@ -416,7 +437,7 @@ public class tester {
 			return A.size()-n;
 		}
 		
-		// reverse order of A
+		// Reverse order of A
 		public void reverse(java.util.ArrayList<Short> A){
 			int i = 0;
 			int j = A.size()-1;
@@ -428,21 +449,19 @@ public class tester {
 			}
 		}		
 		
-		//decimal conversion of reminder
+		// Decimal conversion of reminder
 		public short convert(java.util.ArrayList<Short> A, short baseA) {
 			short output = 0;
-			//transform into decimal
-			//because its a reminder of division 
-			//by base B, the input will always be < B
-			//thus simply transforming to decimal 
-			//results in the same number as in base B
+			// Transform into decimal because its a reminder of division 
+			// by base B, the input will always be < B
+			// thus simply transforming to decimal results in the same number as in base B
 			for(int i=0;i<A.size();i++){
 				output+=(A.get(i)*Math.pow(baseA, i));
 			}
 			return output;
 		}
 		
-		//Verify if A is greater than zero
+		// Verify if A is greater than zero
 		public boolean biggerThanZero(java.util.ArrayList<Short> A) {
 			for(int i=0;i<A.size();i++){
 				if(A.get(i)<0) return false;
@@ -450,7 +469,6 @@ public class tester {
 			
 			return true;
 		}
-		////////////////////////////////////////////////////////////	
 			
 		//=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+=+
 		
