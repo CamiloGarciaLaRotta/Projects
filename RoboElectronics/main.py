@@ -20,16 +20,57 @@ red, green, yellow, blue = LED(1), LED(2), LED(3), LED(4)
 
 #### Constants ####
 
-list = []
-for i in range(20):
-    list.append(adc.read())
+# adc value of zero inclination
+HORIZONTAL = 10
 
-# start horizontal value
-HORIZONTAL = sum(l)/len(l)
+# allowed bandwidth for bangbang controller
+BW = 1
 
-# BandWidth
-BW = max(l) - min(l)
+# adjust HORIZONTAL and BW to runtime adc values
+def calibrate():
+    global HORIZONTAL
+    global BW
 
+    list = []
+    for i in range(20):
+        list.append(adc.read())
+
+    # start horizontal value
+    HORIZONTAL = sum(list)/len(list)
+
+    # BandWidth
+    BW = max(list) - min(list)
+
+# move until inclination changes
+def getOnRamp():
+    global HORIZONTAL
+    global BW
+
+    inclination = adc.read()
+    while inclination < HORIZONTAL + BW and inclination > HORIZONTAL - BW:
+        forward(2)
+        inclination = adc.read()
+
+# BangBang-controller to go forward/backward depending on inclination
+def bb():
+    global HORIZONTAL
+    global BW
+
+    stable = False
+    inclination = adc.read()
+    while not stable:
+        if inclination < HORIZONTAL+BW and inclination > HORIZONTAL-BW:
+            stable = True
+        elif inclination < HORIZONTAL - 2*BW:
+            forward(2)
+        elif inclination < HORIZONTAL - BW:
+            forward(1)
+        elif inclination > HORIZONTAL + 2*BW:
+            backward(2)
+        elif inclination > HORIZONTAL + BW:
+            backward(1)
+        
+        time.sleep(1)
 
 # motor forward for t seconds (green LED)
 def forward(t):
@@ -52,39 +93,38 @@ def backward(t):
     red.off()
 
 #### Entry point #### 
+
 # startup, no action until all lights turn off                                            
 yellow.on()
 time.sleep(2)
 yellow.off()
 
-# get on the ramp
-inclination = adc.read()
-while inclination < HORIZONTAL + BW and inclination > HORIZONTAL - BW:
-    forward(2)
-    inclination = adc.read()
+# calibrate
+calibrate()
+
+# indicate it is calibrated
+yellow.on()
+time.sleep(2)
+yellow.off()
+
+# get on ramp
+getOnRamp()
+
+yellow.on()
+time.sleep(2)
+yellow.off()
 
 # indicate it knows it is on ramp
-for i in range(2):
-    blue.toggle()
-    time.sleep(2) 
+blue.on()
+time.sleep(2)
+blue.off()
 
-# BangBang-controller to go forward/backward depending on inclination
-stable = False
-while not stable:
-    inclination = adc.read()
-    if inclination < 1.05*HORIZONTAL and inclination > 0.95*HORIZONTAL:
-        stable = True
-    elif inclination < 0.5*HORIZONTAL:
-        forward(2)
-    elif inclination < HORIZONTAL:
-        forward(1)
-    elif inclination > 2*HORIZONTAL:
-        backward(2)
-    elif inclin	ation > HORIZONTAL:
-        backward(1)
+# stabilize
+bb()
 
 # indicate it knows it is stable
-for i in range(2):
-    green.toggle()
-    blue.toggle()
-    time.sleep(2) 
+green.on()
+blue.on()
+time.sleep(2)
+green.off()
+gblue.off()
