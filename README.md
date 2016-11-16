@@ -11,7 +11,7 @@ Academic and personal projects
 
 |  __Project__              	|  __Course__           	|   __Professor__	|
 |:---:	                    |:---:	                |:---:          |
-|   Functional Programming & WML Pseudo-Compiler	|   Programming Languages and Paradigms (COMP 302)	|   [Prof. Clark Verbrugge](http://www.sable.mcgill.ca/~clump/)	|
+|   WML_Compiler & Functional_Programming	|   Programming Languages and Paradigms (COMP 302)	|   [Prof. Clark Verbrugge](http://www.sable.mcgill.ca/~clump/)	|
 |   HiRiQ & Base Converter	|  Intro. to Computer Science (COMP 250) 	|   [Prof. Claude Crepeau](http://www.cs.mcgill.ca/~crepeau/)	|
 |   Large Number Conversion	|   Intro. to Computer Engineering (ECSE 221)	|  Prof. Donald Davis 	|
 |   Basic Robotics	|   Design Principles and Methods (ECSE 211)	|  Prof. David Lowther, Prof. Dennis Giannacopoulos 	|
