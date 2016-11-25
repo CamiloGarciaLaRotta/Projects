@@ -1,8 +1,254 @@
-// CAMILO GARCIA 
-// ID# 260657037
-// q3
 
-// question stated that we could assume correct syntax was recieved as input
+//A2Q1
+
+
+// pipe simbol : must only have 1 pipe "|"
+var PIPE = /^\|/;
+
+// template invocation start : must only have 2 curly braces "{{"
+var TSTART = /^{{(?!{)/;
+
+// template invocation end : must only have 2 curly braces "}}"
+var TEND = /^}}(?!})/;
+
+// parameter start : must only have 3 curly braces "{{{"
+var PSTART = /^{{{(?!{)/;
+
+// parameter end : must only have 3 curly braces "}}}"
+var PEND =  /^}}}(?!})/;
+
+// template definiton start : must only have curlybraces + semicolon "{:"
+var DSTART = /^\{:/;
+
+// template definition end : must only have semicolon + curlybraces ":}"
+var DEND = /^:}/;
+
+// parameter name : anything but "|" or "}}}"
+var PNAME = /^((?!}}}|\|)[\s\S])+/ ;
+
+// meaningless text outside template invocation
+// anything but "{{" or "{:"
+var OUTERTEXT = /^((?!{{|{:)[\s\S])+/; 
+    
+// meaningful text inside template invocation to be scanned
+// anything but "{{{" "{:" "{{" "}}" "|"
+var INNERTEXT = /^((?!{{|{{{|{:|\||}})[\s\S])+/;
+
+// meaningful text inside template definition to be scanned
+// anything but "{{{" "{{" "{:" ":}" "|"
+var INNERDTEXT = /^((?!{{|{{{|{:|\||:})[\s\S])+/;
+
+
+//A2Q2
+
+// scan a string s for its first found token among an input tokenSet
+function scan(s, set) {
+	// because keys are transformed into strings and
+	// because of the restriction on the use of eval, 
+	// I use a globalset to which I map the regex to the string
+	var GLOBALSET = {PIPE: PIPE,
+				TSTART: TSTART,
+				TEND: TEND,
+				PSTART: PSTART,
+				PEND: PEND,
+				DSTART: DSTART,
+				DEND: DEND,
+				PNAME: PNAME,
+				OUTERTEXT: OUTERTEXT,
+				INNERTEXT: INNERTEXT,
+				INNERDTEXT: INNERDTEXT};
+
+    // for all the tokens in input set		
+	for(var t in set){
+        // if they are in our global tokenset and they match
+        if(GLOBALSET[t] && s.match(GLOBALSET[t])) {
+            // return the object containing the token and the matched string
+            return {token: t, tokenvalue: s.match(GLOBALSET[t])[0]}
+        }     
+    }
+
+    // no token matched
+	return null;
+}
+
+
+
+//A3Q1
+
+// create empty env with parent node
+function createEnv(parent) {
+    return {name: Math.random(),
+            bindings: {},    
+            parent: parent}
+}
+
+// lookup name binding in chain of env
+function lookup(name, env) {
+    // binding not found
+    if (!env) return null;
+    // binding found, return value
+    if(env["bindings"][name]) return env["bindings"][name];
+    // continue looking up recursively
+    return lookup(name, env.parent)
+}
+
+//A3Q4
+
+
+// entrance point for ast evaluation
+function evalWML(ast, env) {
+    // output string
+    var s = "";
+
+    // no more nodes to evaluate
+    if(!ast) return s;
+
+    // depending on the node's keys, do a set of evaluations
+
+    // search for printable text
+    if (ast["OUTERTEXT"]) s += (ast["OUTERTEXT"]);
+
+    if (ast["INNERDTEXT"]) s += (ast["INNERDTEXT"]);
+
+    if (ast["INNERTEXT"]) s += (ast["INNERTEXT"]);
+    
+    if (ast["itext"]) return s += evalWML(ast.itext, env);
+
+    if (ast["dtext"]) return s += evalWML(ast.dtext, env);
+    
+    // print bound value of parameter
+    if (ast["tparam"]) {
+         var binding = lookup(ast.tparam.pname, env);
+         // if no binding is found, return the litreal text of the parameter
+         if(binding) s += binding;
+         else s += "{{{"+ast.tparam.pname+"}}}";
+    } 
+
+    // evaluate invocation
+    s += evalInvoc(ast["templateinvoc"], env);
+
+    // evaluate definition
+    s += evalDef(ast["templatedef"], env);
+    
+    // evaluate next node
+    s += evalWML(ast.next, env);
+
+    return s;
+}
+
+// evaluation of a function invocation
+function evalInvoc(ast, env) {
+    // output string
+    var s = "";
+
+    // no invocation to evaluate
+    if(!ast) return s;
+
+    // evaluate function's name
+    var functName = evalWML(ast.itext, env);
+
+    // evaluate function's arguments
+    var currNode = ast.targs;
+    var args = []
+    var arg;
+    while(currNode) {
+        // we must handle nested definitions, but only want to evaluate the necessary body in if/ifeq functions
+        // the following switch takes care of this:
+        // it stores the body for further evaluation or evaluates it immediatly depending on the function type
+        switch(functName) {
+        case "#if":
+        case "#ifeq":
+            args.push(currNode)
+            break;
+        case "#expr":
+        default:
+            args.push(evalWML(currNode, env))
+        }
+       currNode = currNode.next
+    }
+
+    // will contain the function to be called
+    var funct;
+
+    // check for #special cases
+    switch(functName) {
+        case "#expr":
+            return eval(args[0]);
+        case "#if":
+           var condition = evalWML(args[0], env);
+            // make sure evaluation of expression didn't return a non-bound parameter
+            // ex: {:iftest2|x|{{#if|{{{x}}}|A|B}}:}{{iftest2|}} --> because no argumet bound to x it returns {{{x}}}
+            return s += (condition && !condition.match(/{{{/)) ? evalWML(args[1], env) : evalWML(args[2], env);
+        case "#ifeq":
+            return s+= (evalWML(args[0], env) == evalWML(args[1], env)) ? evalWML(args[2], env) : evalWML(args[3], env);
+        default:
+            // test for anonymous function
+            funct = (functName.match(/{\"/)) ? unstringify(functName) : lookup(functName, env);
+    }
+    
+    // undefined function
+    if (!funct) {
+        var argument = (args.length > 0) ? "|"+args.join("|") : "";
+        return s += "{{"+functName+argument+"}}";
+    }
+
+    // create new env (static)
+    var newEnv = createEnv(funct.env);
+    // if we wanted dynamic scoping, we would take current called env
+    //var newEnv = createEnv(env);
+
+    // bind arguments to parameters
+    for(var i = 0; i < funct.params.length; i++) {
+        tmpParam = funct.params[i];
+        newEnv.bindings[tmpParam] = args[i];
+    }
+
+     s += evalWML(funct.body, newEnv);
+
+    return s;
+}
+
+// evaluation of a function definition
+function evalDef(ast, env) {
+    // output string
+    var s = "";
+
+    // no definition to evaluate
+    if(!ast) return s;
+
+    // evaluate function's name
+    var functName = evalWML(ast.dtext, env);
+
+    // evaluate function's arguments
+    var currNode = ast.dparams;
+    var params = []
+    var param;
+    // note that my code version for assignment 2 changes the name of the last node
+    // in parameters to "body" to facilitate identification at evaluation time
+    while(currNode.name != "body") {
+        params.push(evalWML(currNode, env))
+        currNode = currNode.next
+    }
+    
+    // detect closure
+    if (functName.match(/`/)) {
+        // non-anonymous function -> store functName in env
+        if(functName.length > 1) {
+            functName = functName.substring(1);
+            env["bindings"][functName] = {params: params, body: currNode, env: env};
+        } 
+        // return closure
+        return stringify({params: params, body: currNode, env: env});
+    } else {
+        env["bindings"][functName] = {params: params, body: currNode, env: env};
+    }        
+
+    return s;
+}
+
+//A2Q3
+
+/ question stated that we could assume correct syntax was recieved as input
 
 // main parser function
 function parse(s) {
@@ -275,4 +521,24 @@ function getLength(obj) {
     }
 
     return numOfChars;
+}
+
+
+//A2Q4
+
+// construct the valid string representation of the input AST 
+function printAST(node) {
+    var str = "";
+
+    // iterate through the node's properties
+    for(var prop in node) {
+        // we ignore nulls and the name property
+       if(prop != "name" && node[prop]) {
+           // f the property is itself a node return its string aswell
+           if(typeof(node[prop]) == 'object') str += printAST(node[prop]);
+           else str += node[prop];
+       }
+    }
+
+    return str;
 }
