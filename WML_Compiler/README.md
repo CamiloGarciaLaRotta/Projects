@@ -8,10 +8,18 @@ Back and Front end part of a basic compiler for WML language with certain additi
 
 The pseudo WML has the following major semantic characteristics:  
 
-|  __Token__              	|  __Symbol__           |  
+-  Template definitions, invocations and closures can be nested
+-  Language is by default statically scoped, to turn into dynamically scoped please see line XXX in WML.js
+-  Anything outside template declaration and invocation is treated as plain HTML text  
+-  `#if` returns true if the string inputted is empty
+-  `#ifeq` returns true if the 2 input strings are equal
+-  `#expr`calls JavaScript's eval() on whatever was passed as an argument
+
+|  __Action__              	|  __Syntax__           |  
 |:---:	                    |:---:	                |
-|   Anything outside template declaration and invocation is treated as plain HTML text	|   ---	|   
 |   Template Definition	|   {: T_name \| T_param1 \| T_param2 \| ... \| T_paramN \| T_body  :}	|  
 |   Template Invocation	|   {{ T_name \| T_arg1 \| T_arg2 \| ... \| T_argN \| T_body  }	|   
 |   Calling a parameter inside the body	|   {{{ T_paramN }}}	|  
-|   Template closure	|   Anonymous : {:`\| parameters \| body :} Named : {:`T_name \| parameters \| body:}	|  
+|   Template closure	|   Anonymous : {:\` \| parameters \| body :}  Named : {:\`T_name \| parameters \| body:}	|  
+|   Conditional templates  (not required to declare before invocation)	|   {{#if \| condition \| then \| else }}  {{#ifeq \| A \| B \| then \| else }} 	|
+|   Expression templates  (not required to declare before invocation)	|   {{#iexps \| expression }} 	|
