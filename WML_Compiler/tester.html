@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>WML Web Compiler</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="style.css" rel="stylesheet">
+        <script type="text/javascript" src="WML.js"></script>
+    </head>
+    <body>
+    <div class="outerContainer">
+        <p>Input WML code</p>
+        <textarea name="input">{:hello|what|Hello {{{what}}}!:} {{hello|world}}</textarea>
+        <p>Output compiled result</p>
+        <textarea name="input">The result of your WML code will appear here</textarea>
+        <center><button onclick="compile()">Compile!</button></center>
+    </div>
+    </body>
+</html>
