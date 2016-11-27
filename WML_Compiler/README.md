@@ -20,6 +20,6 @@ The pseudo WML has the following major semantic characteristics:
 |   Template Definition	|   {: T_name \| T_param1 \| T_param2 \| ... \| T_paramN \| T_body  :}	|  
 |   Template Invocation	|   {{ T_name \| T_arg1 \| T_arg2 \| ... \| T_argN \| T_body  }	|   
 |   Calling a parameter inside the body	|   {{{ T_paramN }}}	|  
-|   Template closure	|   Anonymous : {:\` \| parameters \| body :}  Named : {:\`T_name \| parameters \| body:}	|  
+|   Template closure (can be anonymous)	|   {:\`T_name \| parameters \| body:}	|  
 |   Conditional templates  (not required to declare before invocation)	|   {{#if \| condition \| then \| else }}  {{#ifeq \| A \| B \| then \| else }} 	|
-|   Expression templates  (not required to declare before invocation)	|   {{#iexps \| expression }} 	|
+|   Expression templates  (not required to declare before invocation)	|   {{#expr \| expression }} 	|
