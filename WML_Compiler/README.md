@@ -1,7 +1,8 @@
 # Projects
 ## WML Language compiler
 
-[Basic Online Compiler](https://camilogarcialarotta.github.io/Projects/WML_Compiler/index.html) for a flavor of the WML language 
+[Basic Online Compiler](https://camilogarcialarotta.github.io/Projects/WML_Compiler/index.html) for a flavor of the WML language  
+Basic tests and sample codes can be found in [test.txt](https://github.com/CamiloGarciaLaRotta/Projects/blob/master/WML_Compiler/test.txt)
 
 
 ###Language:
