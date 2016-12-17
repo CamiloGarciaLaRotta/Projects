@@ -1,8 +1,8 @@
 function compile() {
     var inputText = document.getElementById('input').value;
     var AST = parse(inputText)
-    var evaluatedAST = evalWML(AST, createEnv(null))
-	document.getElementById('output').innerHTML = evaluatedAST + "<br><br>"+ JSON.stringify(AST,null,2);
+    var WML = evalWML(AST, createEnv(null))
+	document.getElementById('output').innerHTML = WML;
 }
 
 
@@ -88,29 +88,30 @@ function parse(s) {
 function parseOuter(s) {
 
     // final Object
-    var outer = {name: "outer", length: 0};
+    var outer = {name: "outer", OUTERTEXT: null, templateInvocation: null, 
+                templateDefinition: null, length: 0};
 
     // temporary length of child objects
     var tmpLength;
 
     // parse OUTERTEXT
     var t = scan(s, {OUTERTEXT: true});
-    outer[t.token] = t.tokenvalue;    
-    tmpLength = (t.tokenvalue) ? t.tokenvalue.length : 0;         
+    outer[t.token] = t.tokenvalue;  
+    tmpLength = (t.tokenvalue) ? t.tokenvalue.length : 0;   
+    if (tmpLength == 0) {
+        // parse <template_Invocation>
+        outer["templateInvocation"] = parseTemplateInvocation(s);
+        tmpLength = getRecursiveLength(outer["templateInvocation"]);
+        if (tmpLength == 0) {
+            // parse <template_Definition>
+            outer["templateDefinition"] = parseTemplateDefinition(s);
+            tmpLength = getRecursiveLength(outer["templateDefinition"]);
+        }
+    }
+
+    // update string length
     outer["length"] += tmpLength;
     s = s.substr(tmpLength);
-
-    // parse <template_Invocation>
-    outer["templateInvocation"] = parseTemplateInvocation(s);
-    tmpLength = getRecursiveLength(outer["templateInvocation"]);
-    outer["length"] += tmpLength;
-    s = s.substring(tmpLength);
-
-    // parse <template_Definition>
-    outer["templateDefinition"] = parseTemplateDefinition(s);
-    tmpLength = getRecursiveLength(outer["templateDefinition"]);
-    outer["length"] += tmpLength;
-    s = s.substring(tmpLength);
 
     // verify if there is more string to parse
     outer["next"] = (s) ? parseOuter(s) : null;
@@ -271,7 +272,7 @@ function parseText(s, textForm){
     var t, tmpLength;
     
     // final object
-    var text = {length: 0};
+    var text = {templateInvocation: null, templateDefinition: null, tparam: null, length: 0};
     switch(textForm){
         case "i": 
             text["name"] = "itext";
@@ -286,24 +287,23 @@ function parseText(s, textForm){
     // parse INNER_X_TEXT
     text[t.token] = t.tokenvalue;      
     tmpLength = (t.tokenvalue) ? t.tokenvalue.length : 0;     
-    text["length"] += tmpLength;
-    s = s.substr(tmpLength);
+    if (tmpLength == 0) {
+        // parse <template_Invocation>
+        text["templateInvocation"] = parseTemplateInvocation(s);
+        tmpLength = getRecursiveLength(text["templateInvocation"]);
+        if (tmpLength == 0) {
+            // parse <template_Definition>
+            text["templateDefinition"] = parseTemplateDefinition(s);
+            tmpLength = getRecursiveLength(text["templateDefinition"]);
+            if (tmpLength == 0) {
+                    // parse <Tparam>
+                    text["tparam"] = parseTparam(s);
+                    tmpLength = getRecursiveLength(text["tparam"]);
+            }
+        }
+    }
 
-    // parse <template_Invocation>
-    text["templateInvocation"] = parseTemplateInvocation(s);
-    tmpLength = getRecursiveLength(text["templateInvocation"]);
-    text["length"] += tmpLength;
-    s = s.substring(tmpLength);
-        
-    // parse <template_Definition>
-    text["templateDefinition"] = parseTemplateDefinition(s);
-    tmpLength = getRecursiveLength(text["templateDefinition"]);
-    text["length"] += tmpLength;
-    s = s.substring(tmpLength);
-
-    // parse <Tparam>
-    text["tparam"] = parseTparam(s);
-    tmpLength = getRecursiveLength(text["tparam"]);
+    // update string length
     text["length"] += tmpLength;
     s = s.substring(tmpLength);
     
@@ -317,7 +317,7 @@ function parseText(s, textForm){
     return text;
 }
 
-// <Tparam>
+// <tparams>
 function parseTparam(s) {
 
     // parse <Tparam>
@@ -398,7 +398,7 @@ function evalWML(ast, env) {
     
     // print bound value of parameter
     if (ast["tparam"]) {
-         var binding = lookup(ast.tparam.pname, env);
+         var binding = lookup(ast.tparam.PNAME, env);
          // if no binding is found, return the litreal text of the parameter
          if(binding) s += binding;
          else s += "{{{"+ast.tparam.pname+"}}}";
@@ -526,10 +526,13 @@ function evalDef(ast, env) {
     return s;
 }
 
-/////////////////////////
+//////////// TESTING ////////////
 
-var s = "aaa{:hello|hi|{{{hi}}}:} {{hello|heyo}}bbb"
+/*var s = "aaa{:cheer|how|who|{{{how}}} {{{who}}}!:} {{cheer|hi|bastard}}bbb"
 var AST = parse(s)
+
+//console.log(JSON.stringify(AST,null,2))
+
 var WML = evalWML(AST, createEnv(null))
 
-console.log(WML)
+console.log(WML)*/
