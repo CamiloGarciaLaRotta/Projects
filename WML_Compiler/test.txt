@@ -1,0 +1,63 @@
+Evaluated text &#8658 <font color="green">expected text</font>
+<hr><hr>
+1. {:foo|x|{:bar|y|{{{y}}}:}{{{x}}} and {{bar|there}}:}{{foo|here}} &#8658; <font color="green">here and there</font><br />
+2. {:indirect|actual:}{:actual|hello:}{{ {{indirect}} }}  &#8658; <font color="green">hello</font><br />
+<hr>
+3. {:outer|x|{:inner|x|Inner={{{x}}}:}Outer={{{x}}} {{inner|inner}}:}{{outer|outer}} &#8658; <font color="green">Outer=outer Inner=inner</font>
+<hr>
+{:scope|static:}
+{:showscope|You have {{scope}} scoping.:}
+{:dyntest|{:scope|dynamic:}{{showscope}}:}
+4. {{dyntest}} &#8658; <font color="green">You have static scoping.</font>
+<hr>
+{:wrap|x|{:`|{{{x}}}:}:}
+5. {{ {{ {{wrap|{:`|Hello:} }} }} }} &#8658; <font color="green">hello</font><br />
+6. {{ {{ {{ {{wrap|{{wrap|{:`|Hello again:} }} }} }} }} }} &#8658; <font color="green">hello again</font><br />
+<hr>
+{:holder1|x|{:holder2|{{{x}}}:}{:`|{{holder2}}:}:}
+{:holder2|Boo!:}
+{:v1|{{holder1|A pumpkin}}:}
+{:v2|{:`|{{holder1|squash}}:}:}
+7. {{ {{v1}}}} is a {{ {{ {{v2}}}}}} &#8658; <font color="green">A pumpkin is a squash</font>
+<hr>
+8. {:iftest|x|{{#if|{{{x}}}|A|B}}:}{{iftest|one}} &#8658; <font color="green">A</font><br />
+9. {:iftest2|x|{{#if|{{{x}}}|A|B}}:}{{iftest2|}} &#8658; <font color="green">B</font><br />
+10. {:exprtest|x|{{#expr|{{{x}}}*8}}:}{{exprtest|6}} &#8658; <font color="green">48</font><br />
+11. {:exprtest2|x|{{#expr|{{{x}}}<0}}:}{{exprtest2|1}} &#8658; <font color="green">false</font><br />
+12. {{exprtest2|-1}} &#8658; <font color="green">true</font><br />
+<hr>
+13. {:count|start|stop|{{#ifeq|{{#expr|{{{start}}}<={{{stop}}}}}|true|{{{start}}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}}}}}:}{{count|1|10}} &#8658; <font color="green">1 2 3 4 5 6 7 8 9 10</font><br />
+<hr>
+{:abs|x|{{#ifeq|{{#expr|({{{x}}})<0}}|true|{{#expr|-({{{x}}})}}|{{{x}}}}}:}
+14. {{abs|4}}, {{abs|-4}} &#8658; <font color="green">4, 4</font><br />
+
+15. Average of 5 and 10 is {:average|a|b|{{#expr|(({{{a}}})+({{{b}}}))/2}}:}{{average|5|10}} &#8658; <font color="green">Average of 5 and 10 is  7.5</font><br />
+{:times|x|y|{{#expr|{{{x}}}*{{{y}}}}}:}
+{:square|x|{{times|{{{x}}}|{{{x}}}}}:}
+{:improve|guess|z|{{average|{{{guess}}}|{{#expr|{{{z}}}/{{{guess}}}}}}}:}
+{:good-enough?|guess|x|{{#expr|{{abs|{{#expr|{{square|{{{guess}}}}}-{{{x}}}}}}}<0.001}}:}
+{:sqrt-iter|guess|x|{{#ifeq|{{good-enough?|{{{guess}}}|{{{x}}}}}|true|{{{guess}}}|{{sqrt-iter|{{improve|{{{guess}}}|{{{x}}}}}|{{{x}}}}}}}:}
+{:sqrt|num|{{sqrt-iter|1|{{{num}}}}}:}
+16. Sqrt of 49 is {{sqrt|49}} (some varying round-off ok) &#8658; <font color="green">Sqrt of 49 is 7.000000141269659 (some varying round-off ok)</font>
+
+
+-----------------
+
+{:count
+|start
+|stop
+|{{#ifeq
+   |{{#expr
+      |{{{start}}}<{{{stop}}}}}
+      |true
+      |{{{start}}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}}}}}:}
+{{count|1|10}}
+
+-----------------
+{:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}}}}}}}}:}
+
+{:f
+  |x
+  |y
+  |{:a||{{#expr|{{{x}}}+1}}:}{:b||{{#expr|{{{y}}}+1}}:}{{#expr|{{a}}+{{b}}}}:}
+{{f|2|3}}=7
