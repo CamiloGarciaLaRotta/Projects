@@ -13,7 +13,10 @@
         <textarea id="input">{:hello|what|Hello {{{what}}}!:} {{hello|world}}</textarea>
         <p>Output compiled result</p>
         <div id="output">The result of your WML code will appear here</div>
-        <center><button onclick="compile()">Compile!</button></center>
+        <center>
+            <button onclick="compile()">Compile!</button>
+            <button onclick="addTests()">Add Tests!</button>
+        </center>
     </div>
     </body>
 </html>

@@ -1,63 +1,212 @@
-Evaluated text &#8658 <font color="green">expected text</font>
+Tests to demonstrate the capabilities of the <font color="green">WML Compiler</font>
 <hr><hr>
-1. {:foo|x|{:bar|y|{{{y}}}:}{{{x}}} and {{bar|there}}:}{{foo|here}} &#8658; <font color="green">here and there</font><br />
-2. {:indirect|actual:}{:actual|hello:}{{ {{indirect}} }}  &#8658; <font color="green">hello</font><br />
-<hr>
-3. {:outer|x|{:inner|x|Inner={{{x}}}:}Outer={{{x}}} {{inner|inner}}:}{{outer|outer}} &#8658; <font color="green">Outer=outer Inner=inner</font>
-<hr>
-{:scope|static:}
-{:showscope|You have {{scope}} scoping.:}
-{:dyntest|{:scope|dynamic:}{{showscope}}:}
-4. {{dyntest}} &#8658; <font color="green">You have static scoping.</font>
-<hr>
-{:wrap|x|{:`|{{{x}}}:}:}
-5. {{ {{ {{wrap|{:`|Hello:} }} }} }} &#8658; <font color="green">hello</font><br />
-6. {{ {{ {{ {{wrap|{{wrap|{:`|Hello again:} }} }} }} }} }} &#8658; <font color="green">hello again</font><br />
-<hr>
-{:holder1|x|{:holder2|{{{x}}}:}{:`|{{holder2}}:}:}
-{:holder2|Boo!:}
-{:v1|{{holder1|A pumpkin}}:}
-{:v2|{:`|{{holder1|squash}}:}:}
-7. {{ {{v1}}}} is a {{ {{ {{v2}}}}}} &#8658; <font color="green">A pumpkin is a squash</font>
-<hr>
-8. {:iftest|x|{{#if|{{{x}}}|A|B}}:}{{iftest|one}} &#8658; <font color="green">A</font><br />
-9. {:iftest2|x|{{#if|{{{x}}}|A|B}}:}{{iftest2|}} &#8658; <font color="green">B</font><br />
-10. {:exprtest|x|{{#expr|{{{x}}}*8}}:}{{exprtest|6}} &#8658; <font color="green">48</font><br />
-11. {:exprtest2|x|{{#expr|{{{x}}}<0}}:}{{exprtest2|1}} &#8658; <font color="green">false</font><br />
-12. {{exprtest2|-1}} &#8658; <font color="green">true</font><br />
-<hr>
-13. {:count|start|stop|{{#ifeq|{{#expr|{{{start}}}<={{{stop}}}}}|true|{{{start}}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}}}}}:}{{count|1|10}} &#8658; <font color="green">1 2 3 4 5 6 7 8 9 10</font><br />
-<hr>
-{:abs|x|{{#ifeq|{{#expr|({{{x}}})<0}}|true|{{#expr|-({{{x}}})}}|{{{x}}}}}:}
-14. {{abs|4}}, {{abs|-4}} &#8658; <font color="green">4, 4</font><br />
+1. Identity function <font color="green">&#62;</font> {:I|x|{{{x}}}:}{{I|identity!}}
+<br>
+2. Nested function <font color="green">&#62;</font> {:exclamation|!!!:} {:greet|how|who|{{{how}}} {{{who}}}:} {{greet|Hi|me{{exclamation}} }}
+<br>
+3. Closures (named and anonymous) <font color="green">&#62;</font> {:anonClosure|{:`|anon:}:}{:namedClosure|{:`randomName|named:}:} {{ {{namedClosure}} }} and {{ {{anonClosure}} }}
+<br> 
+4. #if, #ifeq, #expr <font color="green">&#62;</font> 
+{:count|start|stop|separator|
+{{#ifeq|{{#expr|{{{start}}}<={{{stop}}} }}|true|
+{{{start}}}{{#if|{{{separator}}}|{{{separator}}}|}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}|{{{separator}}} }} }}:}
+{{count|1|10|.}}
+<br>
+5. Scoping <font color="green">&#62;</font> {:scope|static:} {:showscope|{{scope}}:} {:testScope|{:scope|dynamic:}{{showscope}}:} {{testScope}}
+<br>
+6. Obliged factorial example <font color="green">&#62;</font> {:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}} }} }} }}:} {{fact|6}}
+<br>
+7. Objects with inheritance <font color="green">&#62;</font> 
+<br>
+ 
 
-15. Average of 5 and 10 is {:average|a|b|{{#expr|(({{{a}}})+({{{b}}}))/2}}:}{{average|5|10}} &#8658; <font color="green">Average of 5 and 10 is  7.5</font><br />
-{:times|x|y|{{#expr|{{{x}}}*{{{y}}}}}:}
-{:square|x|{{times|{{{x}}}|{{{x}}}}}:}
-{:improve|guess|z|{{average|{{{guess}}}|{{#expr|{{{z}}}/{{{guess}}}}}}}:}
-{:good-enough?|guess|x|{{#expr|{{abs|{{#expr|{{square|{{{guess}}}}}-{{{x}}}}}}}<0.001}}:}
-{:sqrt-iter|guess|x|{{#ifeq|{{good-enough?|{{{guess}}}|{{{x}}}}}|true|{{{guess}}}|{{sqrt-iter|{{improve|{{{guess}}}|{{{x}}}}}|{{{x}}}}}}}:}
-{:sqrt|num|{{sqrt-iter|1|{{{num}}}}}:}
-16. Sqrt of 49 is {{sqrt|49}} (some varying round-off ok) &#8658; <font color="green">Sqrt of 49 is 7.000000141269659 (some varying round-off ok)</font>
+<!--
+plastic C => chemicals[]
+getter: getChemical
+-->
+{:plastic|C|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getChemical|
+            {{#if|{{{C}}}|{{{C}}}|DefaultChems}}|
+            {{#ifeq|{{{action}}}|toString|
+                Chemicals: {{#if|{{{C}}}|{{{C}}}|DefaultChems}}, Cost: {{ {{material||}}|getCost }}|
+                {{ {{material||}}| {{{action}}} }}
+            }}
+        }}
+    :}
+:}  
+
+<!--
+F => boolean Ferrous
+getter: getFerrous
+--> 
+{:metal|F|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getFerrous|
+            {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}|
+            {{#ifeq|{{{action}}}|toString|
+                Ferrous: {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}, Cost: {{ {{material||}}|getCost }}|
+                {{ {{material||}}| {{{action}}} }}
+            }}
+        }}
+    :}
+:}    
+
+<!--
+#H => int number of holes
+getter: getNumHoles
+--> 
+{:holed|#H|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getNumHoles|
+            {{#if|{{{#H}}}|{{{#H}}}|Default#Holes}}|
+            {{#ifeq|{{{action}}}|toString|
+                #Holes: {{#if|{{{#H}}}|{{{#H}}}|Default#Holes}}|
+                {{ {{attachement|}}| {{{action}}} }}
+            }}
+        }}
+    :}
+:}   
+
+<!--
+SS => boolean Self-Shank
+getter: getSelfShank
+--> 
+{:shank|SS|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getSelfShank|
+            {{#if|{{{SS}}}|{{{SS}}}|DefaultSS}}|
+            {{#ifeq|{{{action}}}|toString|
+                SelfShank: {{#if|{{{SS}}}|{{{SS}}}|DefaultSS}}|
+                {{ {{attachement|}}| {{{action}}} }}
+            }}
+        }}
+    :}
+:}
+
+<!--
+material
+getter: getCost
+-->
+{:material|cost|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getCost|
+            {{#if|{{{cost}}}|{{{cost}}}|DefaultCost}}|
+            {{#ifeq|{{{action}}}|toString|
+                {{#if|{{{cost}}}|cost: {{{cost}}}|cost: DefaultCost}}|
+            }}
+        }}
+    :}
+:}
 
 
------------------
+<!--attachement-->
+{:attachement|
+    {:`|action|
+        {{#ifeq|{{{action}}}|toString|
+            attachement: {}|
+        }}
+    :}
+:}
 
-{:count
-|start
-|stop
-|{{#ifeq
-   |{{#expr
-      |{{{start}}}<{{{stop}}}}}
-      |true
-      |{{{start}}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}}}}}:}
-{{count|1|10}}
+button object
+getters: getMaterial, getAttachement, getLigne + all inherited getters
+--> 
+{:button|MATERIAL|MATERIAL_PROP|ATTACHEMENT|ATTACHEMENT_PROP|LIGNE|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getMaterial|
+            {{#if|{{{MATERIAL}}}|
+                {{{MATERIAL}}}|
+                Material was not given to constructor! 
+            }}|
+            {{#ifeq|{{{action}}}|getAttachement|
+                {{#if|{{{ATTACHEMENT}}}|
+                    {{{ATTACHEMENT}}}|
+                    Attachement was not given to constructor!
+                }}|
+                {{#ifeq|{{{action}}}|getLigne|
+                    {{#if|{{{LIGNE}}}|{{{LIGNE}}}|LIGNE: DefaultLigne}}|   
+                    {{#ifeq|{{{action}}}|toString|
+                        {{#if|{{{MATERIAL}}}|
+                            Material: {{{MATERIAL}}}, {{ {{ {{{MATERIAL}}}|{{{MATERIAL_PROP}}} }}|toString }}|
+                            Material was not given to constructor!
+                        }}, 
+                        {{#if|{{{ATTACHEMENT}}}|
+                            Attachement: {{{ATTACHEMENT}}}, {{ {{ {{{ATTACHEMENT}}}|{{{ATTACHEMENT_PROP}}} }}|toString}}|
+                            Attachement was not given to constructor!
+                        }}, 
+                        {{#if|{{{LIGNE}}}|
+                            Ligne: {{{LIGNE}}}|
+                            Ligne: DefaultLigne
+                        }}|
+                        {{ {{ {{{MATERIAL}}}|{{{MATERIAL_PROP}}} }}|{{{action}}} }}
+                        {{ {{ {{{ATTACHEMENT}}}|{{{ATTACHEMENT_PROP}}} }}|{{{action}}} }} 
+                    }}
+                }}
+            }}
+        }}
+    :}
+:}
 
------------------
-{:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}}}}}}}}:}
+{:cons|a|b|
+    {:`|action|
+        {{ {{{action}}}|{{{a}}}|{{{b}}} }}
+    :}
+:}
 
-{:f
-  |x
-  |y
-  |{:a||{{#expr|{{{x}}}+1}}:}{:b||{{#expr|{{{y}}}+1}}:}{{#expr|{{a}}+{{b}}}}:}
-{{f|2|3}}=7
+
+{:car|list|
+    {{ {{{list}}}|carHelper}}
+:}
+
+{:carHelper|x|y|
+    {{{x}}}
+:}
+
+
+{:cdr|list|
+    {{ {{{list}}}|cdrHelper}}
+:}
+
+{:cdrHelper|x|y|
+    {{{y}}}
+:}
+
+<!--Main template to create table, calls helper row template to create each row--> 
+{:buttoncollection|buttons|title|filter|
+    <table style="border-collapse: collapse;">
+        <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
+            <th><center>{{{title}}}</center></th>
+        </tr>
+        {{row|{{{buttons}}}|{{{filter}}} }} 
+    </table>
+:}
+
+<!--Helper template of buttoncollection, creates each row--> 
+{:row|list|filter|
+    {{#ifeq|{{{list}}}|null||
+        {{#if|{{{filter}}}|
+            {{#ifeq|{{{filter}}}|{{ {{car|{{{list}}} }}|getMaterial }}|
+                <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
+                    <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
+                        {{ {{car|{{{list}}} }}|toString}}
+                    </td>
+                </tr> |
+            }}
+            {{row|{{cdr|{{{list}}} }}|{{{filter}}} }}|
+            <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
+                <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
+                    {{ {{car|{{{list}}} }}|toString}}
+                </td>
+            </tr> 
+            {{row|{{cdr|{{{list}}} }}|{{{filter}}} }}
+        }}  
+    }}
+:}
+
+<!--HOW TO USE--> 
+{{buttoncollection|
+    {{cons|{{button|metal||shank||}}|{{cons|{{button|plastic|poly|holed|10|1234}}|{{cons|{{button|metal|no|shank|no|55}}|null}} }} }}| 
+    Mah List Of Buttons|
+    metal
+}}
