@@ -679,15 +679,3 @@ function unstringify(s) {
         return null;
     }
 }
-
-
-//////////// TESTING ////////////
-
-var s = "{:wrap|x|{{ {{{x}}} }}:} {{wrap|{:`|HEY:}}}"
-var AST = parse(s)
-
-console.log(JSON.stringify(AST,null,2))
-
-var WML = evalWML(AST, createEnv(null))
-
-console.log(WML)

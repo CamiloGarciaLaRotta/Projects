@@ -1,58 +1,34 @@
-Tests to demonstrate the capabilities of the <font color="green">WML Compiler</font>
+Tests to demonstrate the capabilities of the <font color="red">WML Compiler</font>
 <hr><hr>
-1. Identity function <font color="green">&#62;</font> {:I|x|{{{x}}}:}{{I|identity!}}
+1. Identity function <font color="red">&#62;</font> {:I|x|{{{x}}}:}{{I|identity!}}
 <br>
-2. Nested function <font color="green">&#62;</font> {:exclamation|!!!:} {:greet|how|who|{{{how}}} {{{who}}}:} {{greet|Hi|me{{exclamation}} }}
+2. Nested function <font color="red">&#62;</font> {:exclamation|!!!:} {:greet|how|who|{{{how}}} {{{who}}}:} {{greet|Hi|me{{exclamation}} }}
 <br>
-3. Closures (named and anonymous) <font color="green">&#62;</font> {:anonClosure|{:`|anon:}:}{:namedClosure|{:`randomName|named:}:} {{ {{namedClosure}} }} and {{ {{anonClosure}} }}
+3. Closures (named and anonymous) <font color="red">&#62;</font> {:anonClosure|{:`|anon:}:}{:namedClosure|{:`randomName|named:}:} {{ {{namedClosure}} }} and {{ {{anonClosure}} }}
 <br> 
-4. #if, #ifeq, #expr <font color="green">&#62;</font> 
+4. #if, #ifeq, #expr <font color="red">&#62;</font> 
 {:count|start|stop|separator|
 {{#ifeq|{{#expr|{{{start}}}<={{{stop}}} }}|true|
 {{{start}}}{{#if|{{{separator}}}|{{{separator}}}|}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}|{{{separator}}} }} }}:}
 {{count|1|10|.}}
 <br>
-5. Scoping <font color="green">&#62;</font> {:scope|static:} {:showscope|{{scope}}:} {:testScope|{:scope|dynamic:}{{showscope}}:} {{testScope}}
+5. Scoping <font color="red">&#62;</font> {:scope|static:} {:showscope|{{scope}}:} {:testScope|{:scope|dynamic:}{{showscope}}:} {{testScope}}
 <br>
-6. Obliged factorial example <font color="green">&#62;</font> {:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}} }} }} }}:} {{fact|6}}
+6. Obliged factorial example <font color="red">&#62;</font> {:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}} }} }} }}:} {{fact|6}}
 <br>
-7. Objects with inheritance <font color="green">&#62;</font> 
-<br>
- 
+7. Objects with inheritance <font color="red">&#62;</font> 
 
-<!--
-plastic C => chemicals[]
-getter: getChemical
--->
-{:plastic|C|
+<!--attachement-->
+{:attachement|
     {:`|action|
-        {{#ifeq|{{{action}}}|getChemical|
-            {{#if|{{{C}}}|{{{C}}}|DefaultChems}}|
-            {{#ifeq|{{{action}}}|toString|
-                Chemicals: {{#if|{{{C}}}|{{{C}}}|DefaultChems}}, Cost: {{ {{material||}}|getCost }}|
-                {{ {{material||}}| {{{action}}} }}
-            }}
+        {{#ifeq|{{{action}}}|toString|
+            attachement: {}|
         }}
     :}
-:}  
+:}
 
 <!--
-F => boolean Ferrous
-getter: getFerrous
---> 
-{:metal|F|
-    {:`|action|
-        {{#ifeq|{{{action}}}|getFerrous|
-            {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}|
-            {{#ifeq|{{{action}}}|toString|
-                Ferrous: {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}, Cost: {{ {{material||}}|getCost }}|
-                {{ {{material||}}| {{{action}}} }}
-            }}
-        }}
-    :}
-:}    
-
-<!--
+extends attachement
 #H => int number of holes
 getter: getNumHoles
 --> 
@@ -69,6 +45,7 @@ getter: getNumHoles
 :}   
 
 <!--
+extends attachement
 SS => boolean Self-Shank
 getter: getSelfShank
 --> 
@@ -83,6 +60,7 @@ getter: getSelfShank
         }}
     :}
 :}
+
 
 <!--
 material
@@ -100,15 +78,44 @@ getter: getCost
 :}
 
 
-<!--attachement-->
-{:attachement|
+<!--
+extends material
+plastic C => chemicals[]
+getter: getChemical
+-->
+{:plastic|C|
     {:`|action|
-        {{#ifeq|{{{action}}}|toString|
-            attachement: {}|
+        {{#ifeq|{{{action}}}|getChemical|
+            {{#if|{{{C}}}|{{{C}}}|DefaultChems}}|
+            {{#ifeq|{{{action}}}|toString|
+                Chemicals: {{#if|{{{C}}}|{{{C}}}|DefaultChems}}, Cost: {{ {{material||}}|getCost }}|
+                {{ {{material||}}| {{{action}}} }}
+            }}
         }}
     :}
-:}
+:}  
 
+<!--
+extends material
+F => boolean Ferrous
+getter: getFerrous
+--> 
+{:metal|F|
+    {:`|action|
+        {{#ifeq|{{{action}}}|getFerrous|
+            {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}|
+            {{#ifeq|{{{action}}}|toString|
+                Ferrous: {{#if|{{{F}}}|{{{F}}}|DefaultFerr}}, Cost: {{ {{material||}}|getCost }}|
+                {{ {{material||}}| {{{action}}} }}
+            }}
+        }}
+    :}
+:}    
+
+
+
+
+<!--
 button object
 getters: getMaterial, getAttachement, getLigne + all inherited getters
 --> 
@@ -148,6 +155,7 @@ getters: getMaterial, getAttachement, getLigne + all inherited getters
     :}
 :}
 
+<!--Functional list methods: cons, car, cdr-->
 {:cons|a|b|
     {:`|action|
         {{ {{{action}}}|{{{a}}}|{{{b}}} }}
@@ -174,39 +182,35 @@ getters: getMaterial, getAttachement, getLigne + all inherited getters
 
 <!--Main template to create table, calls helper row template to create each row--> 
 {:buttoncollection|buttons|title|filter|
-    <table style="border-collapse: collapse;">
+    <center><table style="border-collapse: collapse;">
         <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
             <th><center>{{{title}}}</center></th>
         </tr>
         {{row|{{{buttons}}}|{{{filter}}} }} 
-    </table>
+    </table></center>
 :}
 
 <!--Helper template of buttoncollection, creates each row--> 
 {:row|list|filter|
-    {{#ifeq|{{{list}}}|null||
-        {{#if|{{{filter}}}|
-            {{#ifeq|{{{filter}}}|{{ {{car|{{{list}}} }}|getMaterial }}|
-                <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
-                    <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
-                        {{ {{car|{{{list}}} }}|toString}}
-                    </td>
-                </tr> |
-            }}
-            {{row|{{cdr|{{{list}}} }}|{{{filter}}} }}|
+    {{#if|{{{list}}}||
+        {{#if|{{{filter}}}||
             <tr style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
                 <td style="border: 1px solid #dddddd; text-align: left; padding: 8px;">
-                    {{ {{car|{{{list}}} }}|toString}}
+                   {{ {{car|{{{list}}} }}|toString}}
                 </td>
             </tr> 
-            {{row|{{cdr|{{{list}}} }}|{{{filter}}} }}
         }}  
     }}
 :}
 
-<!--HOW TO USE--> 
-{{buttoncollection|
-    {{cons|{{button|metal||shank||}}|{{cons|{{button|plastic|poly|holed|10|1234}}|{{cons|{{button|metal|no|shank|no|55}}|null}} }} }}| 
-    Mah List Of Buttons|
-    metal
-}}
+
+<br>
+&#160; Plastic instance <font color="red">&#62;</font> {{ {{plastic|polycarbonate}}|toString}}
+<br>
+&#160; Holed instance <font color="red">&#62;</font> {{ {{holed|10}}|toString}}
+<br>
+&#160; Button instance <font color="red">&#62;</font> {{ {{button|metal|yes|shank|no|5}}|toString}}
+<br>
+&#160; car(cdr(cons(b1,cons(b2,null)))) <font color="red">&#62;</font> {{ {{car|{{cdr|{{cons|{{button|plastic|poly|holed|1|5}}|{{cons|{{button|metal|yes|shank|no|5}}|null}} }} }} }}|toString}}
+<br>
+&#160; Automatically generated table of list of Buttons <font color="red">&#62;</font> {{buttoncollection|{{cons|{{button|metal|no|holed|1|5}}|{{cons|{{button|metal|yes|shank|no|5}}|}} }}|Table Of Buttons|}}
