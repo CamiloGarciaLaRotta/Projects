@@ -1,32 +1,14 @@
 // scan, parse, evaluate and output WML code
 function compile() {
     var inputText = document.getElementById('input').value;
-    var AST = parse(inputText)
-    var WML = evalWML(AST, createEnv(null))
-	document.getElementById('output').innerHTML = WML;
-}
+    var WML;
+    try {
+         WML = evalWML(parse(inputText), createEnv(null))
+    } catch(e) {
+        WML = '<span style="color:red;">'+e+'</span>';
+    }
 
-// avoid the need to copy/paste the given examples of test.txt
-function addTests() {
-    var tests = 
-        "Tests to demonstrate the capabilities of the <font color=\"green\">WML Compiler</font>\n" +
-        "<hr><hr>\n" +
-        "1. Identity function <font color=\"green\">&#62;</font> {:I|x|{{{x}}}:}{{I|identity!}}\n" +
-        "<br>\n" +
-        "2. Nested function <font color=\"green\">&#62;</font> {:exclamation|!!!:} {:greet|how|who|{{{how}}} {{{who}}}:} {{greet|Hi|me{{exclamation}} }}\n" +
-        "<br>\n" + 
-        "3. Closures (named and anonymous) <font color=\"green\">&#62;</font> {:anonClosure|{:`|anon:}:}{:namedClosure|{:`randomName|named:}:} {{ {{namedClosure}} }} and {{ {{anonClosure}} }}\n" +
-        "<br>\n" +
-        "4. #if, #ifeq, #expr <font color=\"green\">&#62;</font> {:count|start|stop|separator|\n" +
-        "{{#ifeq|{{#expr|{{{start}}}<={{{stop}}} }}|true|\n" +
-        "{{{start}}}{{#if|{{{separator}}}|{{{separator}}}|}} {{count|{{#expr|{{{start}}}+1}}|{{{stop}}}|{{{separator}}} }} }}:}\n" +
-        "{{count|1|10|.}}\n" +
-        "<br>\n" +
-        "5. Scoping <font color=\"green\">&#62;</font> {:scope|static:} {:showscope|{{scope}}:} {:testScope|{:scope|dynamic:}{{showscope}}:} {{testScope}}\n" +
-        "<br>\n" +
-        "6. Obliged factorial example <font color=\"green\">&#62;</font> {:fact|n|{{#ifeq|{{#expr|{{{n}}}==0}}|true|1|{{#expr|{{{n}}}*{{fact|{{#expr|{{{n}}}-1}} }} }} }}:} {{fact|6}}\n" +
-        "<br>\n"
-    document.getElementById('input').innerHTML = tests;        
+	document.getElementById('output').innerHTML = WML;
 }
 
 //////////// TOKENS ////////////

@@ -15,8 +15,16 @@
         <div id="output">The result of your WML code will appear here</div>
         <center>
             <button onclick="compile()">Compile!</button>
-            <button onclick="addTests()">Add Tests!</button>
         </center>
     </div>
     </body>
+    <!--
+        BONUS SECRET WML CODE:
+        {:balls|&#56;:}
+        {:shaft|{{repeat|&#61;|{{#expr|Math.floor(Math.random()*(14)+1)}} }}:}
+        {:repeat|pattern|times|{{#ifeq|{{#expr|{{{times}}}==0}}|true|{{{pattern}}}|{{{pattern}}}{{repeat|{{{pattern}}}|{{#expr|{{{times}}}-1}} }} }}:}
+        {:head|&#68;:}
+        {:drawDick|{{balls}}{{shaft}}{{head}}:}
+        {{drawDick}}
+    -->
 </html>
