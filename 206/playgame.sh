@@ -6,7 +6,11 @@
 
 ### Global Constants
 
+# file for data persistence
 OUTPUT_FILE="Data.pg"
+
+# key to encrypt/decrypt numbers in OUTPUT_FILE
+CESAR_KEY=5
 
 ### Helper Methods
  
@@ -43,7 +47,7 @@ function calculate_avg {
     (( count += tmp_val ))
   done
   
-  echo $(( count/size )) 
+  echo $(( (count/size) - CESAR_KEY )) 
 }
 
 # float to integer transformation
@@ -63,7 +67,7 @@ if ! [[ -e $OUTPUT_FILE ]]; then
 
   # generate random numbers
   for i in $(seq 1 10);  do
-    num=$(( ($RANDOM % 50)+1 ))
+    num=$(( ($RANDOM % 50) + (1 + CESAR_KEY) ))
     printf "%d\n" "$num" >> $OUTPUT_FILE
   done
   
@@ -71,8 +75,8 @@ if ! [[ -e $OUTPUT_FILE ]]; then
   # note that this is merely a visual aid, the script doesnt need it
   printf "\n" >> $OUTPUT_FILE
 
-  # initial average of tries is 0
-  printf "0\n" >> $OUTPUT_FILE
+  # initial average of tries is 1 
+  printf "%d\n" "$((1 + CESAR_KEY))" >> $OUTPUT_FILE
 fi
 
 # give 3 tries to find correct value
@@ -108,7 +112,8 @@ while [ $tries -lt 3 ]; do
     echo "Well done. you took ${tries} tries. Average tries is ${avg_tries}" 
     
     # store user's number of tries
-    sed -i -e 12i\\${tries} -e 16d ${OUTPUT_FILE}
+    cyphered_tries=$((tries + CESAR_KEY))
+    sed -i -e 12i\\${cyphered_tries} -e 16d ${OUTPUT_FILE}
     
     break 
   else 
@@ -117,13 +122,15 @@ while [ $tries -lt 3 ]; do
     #echo $line
 
     # replace line with users guess
-    sed -i -e ${line}i\\${guess} -e ${line}d ${OUTPUT_FILE}
+    cyphered_guess=$((guess + CESAR_KEY))
+    sed -i -e ${line}i\\${cyphered_guess} -e ${line}d ${OUTPUT_FILE}
   fi
   
   # user didn't guess the number after 3 tries, log the amount of tries before exiting
   if [[ $tries -eq 3 ]]; then
     echo "Sorry, you ran out of tries, answer was ${curr_avg}"
-    sed -i -e 12i\\${tries} -e 16d ${OUTPUT_FILE}
+    cyphered_tries=$((tries + CESAR_KEY))
+    sed -i -e 12i\\${cyphered_tries} -e 16d ${OUTPUT_FILE}
   fi
 done
 
