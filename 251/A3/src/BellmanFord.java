@@ -28,7 +28,7 @@ public class BellmanFord{
     	this.distances[0] = 0;
 
         // relax all edges at most V-1 times 
-        for(int i=1;i<g.getNbNodes()-1;i++) {
+        for(int i=0;i<g.getNbNodes()-1;i++) {
             for(Edge e:g.getEdges()) {
             	relax(e);
             }
@@ -68,6 +68,8 @@ public class BellmanFord{
             	node = this.predecessors[node];
         	}
         }
+        // add last node
+        pathList.add(0, node);
 
         // map ArrayList onto int array
         return pathList.stream().mapToInt(i->i).toArray();
