@@ -1,9 +1,6 @@
 import java.io.*;
 import java.util.*;
 
-
-
-
 public class FordFulkerson {
 
 	
@@ -21,7 +18,6 @@ public class FordFulkerson {
 		
 		// push node value into stack
 		Stack.add(current.intValue());
-		System.out.println(current.intValue() + "\n");
 		
 		// verify if we found destination
 		if(current.equals(destination)) return true;
@@ -30,7 +26,7 @@ public class FordFulkerson {
 		for(Edge e:graph.getEdges()) {
 			// visit nodes that are adjacent to current node and haven't been visited before
 			if(e.nodes[0] == current && e.weight > 0 && Stack.indexOf(e.nodes[1]) < 0)
-				if (DFS(e.nodes[0], destination, graph, Stack)) return true;
+				if (DFS(e.nodes[1], destination, graph, Stack)) return true;
 		}
 		
 		// did not find path
@@ -54,16 +50,10 @@ public class FordFulkerson {
 		// residual graph based on current flowG
 		WGraph resG = new WGraph(graph);
 		ArrayList<Edge> edges = resG.getEdges();
-		for(int i=0;i<edges.size();i++){
+		for(int i=edges.size()-1;i>=0;i--){
 			Edge e = edges.get(i);
-			edges.add(new Edge(e.nodes[1], e.nodes[0], 0));
+			resG.addEdge(new Edge(e.nodes[1], e.nodes[0], 0));
 		}
-        
-		// REPLACED FOR EACH BY THE ABOVE FOR BECAUSE OF CONCURRENCY PROB
-//		for(Edge e:resG.getEdges()) {
-//			// create backwards edges with initial 0 flow
-//			resG.addEdge(new Edge(e.nodes[1], e.nodes[0], 0));
-//		}
 		
 		// loop until no more augmenting paths are found in resG
 		ArrayList<Integer> augmentingPath = pathDFS(source, destination, resG);
@@ -91,21 +81,19 @@ public class FordFulkerson {
 		// final bottleneck flow
 		int b = 0;
 		
-		// tmp nodes flow and capacity
-		int x,y,f,c;
+		// tmp nodes and flow
+		int x,y,f;
 		
 		// iterate through all edges in path
 		for(int i=0;i<path.size()-1;i++) {
 			x = path.get(i);
 			y = path.get(i+1);
 			f = resG.getEdge(x,  y).weight;
-			c = graph.getEdge(x, y).weight;
 			
 			// on first iteration bottleneck hasnt been found
-			// on any other iteration bottleneck is min(b|c-f)
-			b = (b==0 || c-f < b) ? c-f : b;
+			// on any other iteration bottleneck is min(b,f)
+			b = (b==0 || f < b) ? f : b;
 		}
-		
 		return b;
 	}
 
@@ -121,7 +109,11 @@ public class FordFulkerson {
 			
 			// flowG
 			e = flowG.getEdge(x, y);
-			flowG.setEdge(x, y, e.weight+b);
+			// path involves a backedge, reduce instead of augmenting
+			if(e == null) {
+				e = flowG.getEdge(y, x);
+				flowG.setEdge(y, x, e.weight-b);
+			} else flowG.setEdge(x, y, e.weight+b);
 			
 			// resG
 			e = resG.getEdge(x, y);
