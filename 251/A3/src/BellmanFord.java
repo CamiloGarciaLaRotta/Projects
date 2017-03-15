@@ -19,19 +19,59 @@ public class BellmanFord{
          *  distance value must be Integer.MAX_VALUE
          */
         
-        /* YOUR CODE GOES HERE */
-       
-    }
+    	// initialize properties
+        this.source = source;
+    	this.predecessors = new int[g.getNbNodes()];
+    	this.distances = new int[g.getNbNodes()];
+    	
+    	Arrays.fill(this.distances, Integer.MAX_VALUE);
+    	this.distances[0] = 0;
 
-    public int[] shortestPath(int destination) throws Exception{
+        // relax all edges at most V-1 times 
+        for(int i=1;i<g.getNbNodes()-1;i++) {
+            for(Edge e:g.getEdges()) {
+            	relax(e);
+            }
+        }
+        
+        // identify negative edge
+        for(Edge e:g.getEdges()) {
+        	if (distances[e.nodes[1]] > distances[e.nodes[0]] + e.weight) throw new Exception("Graph contains negative cycle");
+        }
+    }
+    
+    // relax the weight of the edge, updating predecessor and distances
+    private void relax(Edge e) {
+    	int u = e.nodes[0];
+    	int v = e.nodes[1];
+    	
+		if (this.distances[v] > this.distances[u] + e.weight) {
+			this.distances[v] = this.distances[u] + e.weight;
+			this.predecessors[v] = u;
+		}
+	}
+
+	public int[] shortestPath(int destination) throws Exception{
         /*Returns the list of nodes along the shortest path from 
          * the object source to the input destination
          * If not path exists an Error is thrown
          */
 
-        /* YOUR CODE GOES HERE (update the return statement as well!) */
+        ArrayList<Integer> pathList = new ArrayList<Integer>();
         
-        return null;
+        int node = destination;
+        while(node != this.source) {
+        	// check for unreachable node
+        	if(this.distances[node] == Integer.MAX_VALUE) throw new Exception("Node cant be reached from source");
+        	else {
+        		pathList.add(0, node);
+            	node = this.predecessors[node];
+        	}
+        }
+
+        // map ArrayList onto int array
+        return pathList.stream().mapToInt(i->i).toArray();
+        
     }
 
     public void printPath(int destination){
