@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
       printf("Input Number: %d\n",y);
       
-      printf("Fibonnaci Number f(%d) is %d\n", y, fib(y));
+      printf("Fibonnaci Number f(%d) is %ld\n", y, fib(y));
       
 
       printf("FIB PROC EXITS\n");

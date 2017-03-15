@@ -39,7 +39,7 @@ void sort(int x) {
   printf("\n");
 }
 
-int fib(int y) {
+long fib(long y) {
   if (y <= 2) return 1;
   else return fib(y-1) + fib(y-2);
 }

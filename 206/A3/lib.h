@@ -3,4 +3,4 @@
 // Q3
 
 void sort(int);
-int fib(int);
+long fib(long);
