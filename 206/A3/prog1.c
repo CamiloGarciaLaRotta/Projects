@@ -12,12 +12,7 @@
 #include <errno.h>  // for error handling during fopen
 #include <ctype.h>  // for isalpha
 
-// Global variables
-// file pointer for I/O
-FILE* fp = NULL;
-
-const char* filename = "input.txt";
-
+////HELPER METHODS
 // calculate summation of all non-null integers in array
 int getSum(int values[], int maxIndex) {
   int sum=0;
@@ -41,6 +36,16 @@ int getFib(int n) {
 
 // Program entry point
 int main(int argc, char** argv) {
+  
+  if(argc != 2) {
+    printf("Usage: ./prog1 filename");
+    return(EXIT_FAILURE);
+  }
+
+  // file pointer for I/O
+  FILE* fp = NULL;
+
+  const char* filename = argv[1];
   
   // attempt to open file
   if((fp=fopen(filename, "r")) == NULL) {
