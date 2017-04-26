@@ -1,5 +1,3 @@
-#TODOOOO MAKE PUBLC
-
 # Projects
 
 Academic and personal projects
@@ -13,6 +11,7 @@ Academic and personal projects
 
 |  __Project__              	|  __Course__           	|   __Professor__	|
 |:---:	                    |:---:	                |:---:          |
+|   Graph_Theory	|  Algorithms and Data Structures (COMP 251)	|  [Prof. Jérôme Waldispuhl](http://www.cs.mcgill.ca/~jeromew/) 	|
 |   WML_Compiler & Functional_Programming	|   Programming Languages and Paradigms (COMP 302)	|   [Prof. Clark Verbrugge](http://www.sable.mcgill.ca/~clump/)	|
 |   HiRiQ & Base Converter	|  Intro. to Computer Science (COMP 250) 	|   [Prof. Claude Crepeau](http://www.cs.mcgill.ca/~crepeau/)	|
 |   Large Number Conversion	|   Intro. to Computer Engineering (ECSE 221)	|  Prof. Donald Davis 	|
