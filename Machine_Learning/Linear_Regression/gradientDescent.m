@@ -12,17 +12,10 @@ for iter = 1:num_iters
     % ====================== YOUR CODE HERE ======================
     % Instructions: Perform a single gradient step on the parameter vector
     %               theta. 
-    %
-    % Hint: While debugging, it can be useful to print out the values
-    %       of the cost function (computeCost) and gradient here.
-    %
-
-
-
-
-
-
-
+   
+    tmpTheta = theta;
+    theta(1) = tmpTheta(1) - (alpha/m)*sum((X*tmpTheta - y).*X(:,1));
+    theta(2) = tmpTheta(2) - (alpha/m)*sum((X*tmpTheta - y).*X(:,2));
     % ============================================================
 
     % Save the cost J in every iteration    

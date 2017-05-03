@@ -10,11 +10,11 @@ m = length(y); % number of training examples
 J = 0;
 
 % ====================== YOUR CODE HERE ======================
-size(X(:,2))
-size(y)
-size(theta)
+%size(X(:,2))
+%size(y)
+%size(theta)
 
-J = (1/(2*m))*(X*theta - y).^2;
+J = (1/(2*m))*(X*theta - y)'*(X*theta - y);
 
 % =========================================================================
 
