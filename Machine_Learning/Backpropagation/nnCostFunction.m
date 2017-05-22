@@ -64,10 +64,41 @@ Theta2_grad = zeros(size(Theta2));
 
 
 
+% FP to compute J
 
+% add bias unit
+X = [ones(m,1) X];
 
+% perform FP for each node
+for i=1:m
+    a1 = X(i,:)';
+    z2 = Theta1*a1;
+    a2 = [1; sigmoid(z2)];
+    z3 = Theta2*a2;
+    a3 = sigmoid(z3);
+    h = a3;
+    
+    % create boolean vector from numerical label
+    yVec = (1:num_labels)' == y(i)
+    J = J - (yVec'*log(h) + (1 - yVec)'*log(1-h));
+    
+    %backpropagation
+    d3 = a3 - yVec;
+    d2 = Theta2'*d3 .* (a2.*(1-a2));
+    Theta2_grad = Theta2_grad + d3*a2';
+    Theta1_grad = Theta1_grad + d2(2:end)*a1';
+end
 
+%scale cost fucntion and gradient
+J = J / m;
+Theta1_grad = Theta1_grad / m;
+Theta2_grad = Theta2_grad / m;
 
+%regularization
+p = sum(sum(Theta1(:, 2:end).^2, 2))+sum(sum(Theta2(:, 2:end).^2, 2));
+J = J  + lambda*p/(2*m);
+Theta1_grad = Theta1_grad + (lambda / m) * [zeros(size(Theta1, 1), 1) Theta1(:,2:end)];
+Theta2_grad = Theta2_grad + (lambda / m) * [zeros(size(Theta2, 1), 1) Theta2(:,2:end)];
 
 
 
