@@ -5,13 +5,17 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <dirent.h>
 
 // syscalls
+#include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <sys/syscall.h>
 
 #define ARGS_SIZE 10
-#define CHAR_BUFFER 256
+#define CHAR_BUFFER 1024 
+#define DISPLAY_MSG 1
 
 ///////////////////////////////////////////////////////////
 //  ECSE 427 - Assignment #1                             //
@@ -66,9 +70,9 @@ int get_cmd(const char* prompt, char *args[], int *bg)
     return token_count;
 }
 
-void handle_success(void)
+void handle_success(int display_msg)
 {
-    printf("Exiting TinyShell\n");
+    if (display_msg == 1) { printf("Exiting TinyShell\n"); }
     exit(EXIT_SUCCESS);
 }
 
@@ -111,7 +115,7 @@ int main(void)
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
-            handle_success();
+            handle_success(DISPLAY_MSG);
         }
         if (token_count == 0)
         {
@@ -122,7 +126,7 @@ int main(void)
         
         // implementation of built-in cmds
         // that don't require forking
-        if (strcmp(args[0], "exit") == 0) { handle_success(); }
+        if (strcmp(args[0], "exit") == 0) { handle_success(DISPLAY_MSG); }
         
         if (strcmp(args[0],"cd") == 0)
         {
@@ -167,8 +171,32 @@ int main(void)
                 // check for implemented built-in cmds
                 if (strcmp(args[0],"ls") == 0)
                 {
-                    // TODO
-                }
+                    int fd, file_count, buf_pos;
+                    char buf[CHAR_BUFFER];
+                    char *path;
+                    struct dirent *dir;
+                   
+                    // define target path
+                    path = (args[1] == NULL) ? "." : args[1]; 
+                    
+                    fd = open(path, O_RDONLY | O_DIRECTORY);
+                    if (fd == -1) { handle_error("open()"); }
+
+                    file_count = syscall(SYS_getdents, fd, buf, CHAR_BUFFER);
+                    if (file_count == -1) { handle_error("getdents"); }
+
+                    for (buf_pos = 0; buf_pos < file_count; buf_pos += dir->d_reclen)
+                    {
+                        dir = (struct dirent *)(buf + buf_pos);
+                        printf("%s\t\t",dir->d_name-1);
+                    }
+                    printf("\n");
+                    
+                    close(fd);
+                   //free(dir);
+                    
+                    handle_success(!DISPLAY_MSG);
+             }
                 else if (strcmp(args[0],"cat") == 0)
                 {
                     // TODO 
