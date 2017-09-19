@@ -1,17 +1,28 @@
+// general purpose imports
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define ARGS_SIZE 20
+// syscalls
+#include <unistd.h>
+#include <sys/stat.h>
+
+#define ARGS_SIZE 10
 #define CHAR_BUFFER 256
 
 ///////////////////////////////////////////////////////////
-//  TODO    HANDLE ENTER && CTRL+D
-//          IMPLEMENT LS,CD,CAT,CP,FG,JOBS
+//  ECSE 427 - Assignment #1                             //
+//  Camilo Garcia La Rotta                               //   
+//  ID #260657037                                        //
+///////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////
+//  TODO    HANDLE SIGNALS 
+//          IMPLEMENT CAT,CP,FG,JOBS
 //          VALGRIND
 ///////////////////////////////////////////////////////////
 
@@ -55,6 +66,17 @@ int get_cmd(const char* prompt, char *args[], int *bg)
     return token_count;
 }
 
+void handle_success(void)
+{
+    printf("Exiting TinyShell\n");
+    exit(EXIT_SUCCESS);
+}
+
+void handle_error(char *msg)
+{
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
 
 int main(void)
 {
@@ -62,6 +84,16 @@ int main(void)
     char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER];
     const char *separator = " > ";
     int bg, i;
+
+    // welcome banner
+    printf("\n\n");
+    printf("\tWelcome to the TinyShell\n");
+    printf("\tECSE 427 - Assignment #1\n");
+    printf("\t------------------------\n");
+    printf("\tCamilo Garcia La Rotta\n");
+    printf("\tID #260657037\n");
+    printf("\t-----------------------\n");
+    printf("\n\n");
 
     while(1)
     {
@@ -79,8 +111,7 @@ int main(void)
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
-            perror("\nExiting TinyShell");
-            exit(EXIT_SUCCESS);
+            handle_success();
         }
         if (token_count == 0)
         {
@@ -91,45 +122,34 @@ int main(void)
         
         // implementation of built-in cmds
         // that don't require forking
-        if (strcmp(args[0], "exit") == 0)
-        {
-            printf("Exiting TinyShell ...\n");
-            exit(EXIT_SUCCESS);
-        }
-        else if (strcmp(args[0],"cd") == 0)
+        if (strcmp(args[0], "exit") == 0) { handle_success(); }
+        
+        if (strcmp(args[0],"cd") == 0)
         {
             char *dst = NULL;
+            int result;
 
             if (args[1] == NULL)
             {
                 // no destination arg, $HOME is implied
                 dst = getenv("HOME");
-                if (dst == NULL)
-                {
-                    printf("Error: $HOME is not initialized");
-                    exit(EXIT_FAILURE);
-                }
+                if (dst == NULL) { handle_error("getenv()"); }
             }
             else { dst = args[1]; }
 
-            int result = chdir(dst);
-            if (result == -1)
-            {
-                perror("Couldn't cd");
-                exit(EXIT_FAILURE);
-            }
+            result = chdir(dst);
+            if (result == -1) { handle_error("cd"); } 
         }
         else
         {
+            // actions requiring forking
+            
             //pid_t pid = getpid();
             pid_t child_pid = fork();
 
-            if (child_pid == -1)
-            { 
-                perror("Failed to fork"); 
-                exit(EXIT_FAILURE);
-            }
-            else if (child_pid > 0)
+            if (child_pid == -1) { handle_error("fork()"); }
+            
+            if (child_pid > 0)
             {
                 // inside parent process
 
@@ -148,7 +168,6 @@ int main(void)
                 if (strcmp(args[0],"ls") == 0)
                 {
                     // TODO
-                    exit(EXIT_SUCCESS); 
                 }
                 else if (strcmp(args[0],"cat") == 0)
                 {
@@ -168,11 +187,11 @@ int main(void)
                 }
                 else 
                 {
-                    // non implemented cmd,
+                    // non built-in cmds,
                     // pass directly to execvp
-
                     execvp(args[0],args);
-                
+               
+                    // should never reach this point
                     _exit(EXIT_FAILURE);
                 }
             }
