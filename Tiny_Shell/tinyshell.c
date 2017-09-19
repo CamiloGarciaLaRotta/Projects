@@ -7,6 +7,14 @@
 #include <sys/wait.h>
 
 #define ARGS_SIZE 20
+#define CHAR_BUFFER 256
+
+///////////////////////////////////////////////////////////
+//  TODO    HANDLE ENTER && CTRL+D
+//          IMPLEMENT LS,CD,CAT,CP,FG,JOBS
+//          VALGRIND
+///////////////////////////////////////////////////////////
+
 
 // tokenize user's input command
 // returns number of tokens parsed including binary file
@@ -19,9 +27,11 @@ int get_cmd(const char* prompt, char *args[], int *bg)
     size_t linecap = 0;
 
     cmd_len = getline(&cmd, &linecap, stdin);
-    if (cmd_len <= 0)  return -1; 
-    //if (strcmp(cmd,"\n")) return 0; 
-
+    // if no input or EOF flag, exit program
+    if ((cmd_len <= 0) || (strcmp(cmd,"\000") == 0)) return -1;
+    // if newline or empty string, redisplay prompt
+    if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) return 0;
+    
     // check if last character in line is background flag
     *bg = (cmd[cmd_len-2] == '&') ? 1 : 0;
     
@@ -49,19 +59,34 @@ int get_cmd(const char* prompt, char *args[], int *bg)
 int main(void)
 {
     char *args[ARGS_SIZE];
+    char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER];
+    const char *separator = " > ";
     int bg, i;
 
     while(1)
     {
         // reset args
         for (i = 0; i < ARGS_SIZE; i++) { args[i] = NULL; }
+        pwd[0] = prompt[0] = '\0';
         bg = 0;
 
-        int token_count = get_cmd("\n> ", args, &bg); 
+        // get present directory name
+        getcwd(pwd, sizeof(pwd));
+        strcat(prompt,pwd);
+        strcat(prompt,separator);
+
+        int token_count = get_cmd(prompt, args, &bg); 
         if (token_count == -1) 
         {
-            perror("Exiting TinyShell");
+            // no cmd entered or EOF flag
+            perror("\nExiting TinyShell");
             exit(EXIT_FAILURE);
+        }
+        if (token_count == 0)
+        {
+            // user entered no cmd
+            // display prompt again
+            continue;
         }
         
         //pid_t pid = getpid();
@@ -75,7 +100,15 @@ int main(void)
         else if (child_pid > 0)
         {
             // inside parent process
-            
+
+            // check for implemented built-in cmds
+            if (strcmp(args[0],"exit") == 0)
+            {
+                printf("Exiting TinyShell ...\n");
+
+                exit(EXIT_SUCCESS);
+            }
+
             // check background flag
             if (bg == 0)
             {
@@ -87,9 +120,65 @@ int main(void)
         {
             // inside child process
             
-            execvp(args[0],args);
+            // check for implemented built-in cmds
+            if (strcmp(args[0],"ls") == 0)
+            {
+                exit(EXIT_SUCCESS); 
+            }
+            else if (strcmp(args[0],"cd") == 0)
+            {
+                char *dst = NULL;
+
+                if (args[1] == NULL)
+                {
+                    // no destination arg, $HOME is implied
+                    dst = getenv("HOME");
+                    if (dst == NULL)
+                    {
+                        printf("Error: $HOME is not initialized");
+                        exit(EXIT_FAILURE);
+                    }
+                }
+                else { dst = args[1]; }
+
+                int result = chdir(dst);
+                if (result == -1)
+                {
+                    perror("Couldn't cd");
+                    exit(EXIT_FAILURE);
+                }
+
+                exit(EXIT_SUCCESS);
+            }
+            else if (strcmp(args[0],"cat") == 0)
+            {
+                // TODO 
+            }
+            else if (strcmp(args[0],"cp") == 0)
+            {
+                // TODO 
+            }
+            else if (strcmp(args[0],"fg") == 0)
+            {
+                // TODO 
+            }
+            else if (strcmp(args[0],"jobs") == 0)
+            {
+                // TODO 
+            }
+            else if (strcmp(args[0],"exit") == 0)
+            {
+                exit(EXIT_SUCCESS); 
+            }
+            else 
+            {
+                // non implemented cmd,
+                // pass directly to execvp
+
+                execvp(args[0],args);
             
-            _exit(EXIT_FAILURE);
+                _exit(EXIT_FAILURE);
+            }
         }
     }
 }
