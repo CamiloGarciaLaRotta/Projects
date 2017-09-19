@@ -80,7 +80,7 @@ int main(void)
         {
             // no cmd entered or EOF flag
             perror("\nExiting TinyShell");
-            exit(EXIT_FAILURE);
+            exit(EXIT_SUCCESS);
         }
         if (token_count == 0)
         {
@@ -89,95 +89,92 @@ int main(void)
             continue;
         }
         
-        //pid_t pid = getpid();
-        pid_t child_pid = fork();
-
-        if (child_pid == -1)
-        { 
-            perror("Failed to fork"); 
-            exit(EXIT_FAILURE);
-        }
-        else if (child_pid > 0)
+        // implementation of built-in cmds
+        // that don't require forking
+        if (strcmp(args[0], "exit") == 0)
         {
-            // inside parent process
-
-            // check for implemented built-in cmds
-            if (strcmp(args[0],"exit") == 0)
-            {
-                printf("Exiting TinyShell ...\n");
-
-                exit(EXIT_SUCCESS);
-            }
-
-            // check background flag
-            if (bg == 0)
-            {
-                int status;
-                waitpid(child_pid, &status, 0);
-            }
+            printf("Exiting TinyShell ...\n");
+            exit(EXIT_SUCCESS);
         }
-        else if (child_pid == 0)
+        else if (strcmp(args[0],"cd") == 0)
         {
-            // inside child process
-            
-            // check for implemented built-in cmds
-            if (strcmp(args[0],"ls") == 0)
-            {
-                exit(EXIT_SUCCESS); 
-            }
-            else if (strcmp(args[0],"cd") == 0)
-            {
-                char *dst = NULL;
+            char *dst = NULL;
 
-                if (args[1] == NULL)
+            if (args[1] == NULL)
+            {
+                // no destination arg, $HOME is implied
+                dst = getenv("HOME");
+                if (dst == NULL)
                 {
-                    // no destination arg, $HOME is implied
-                    dst = getenv("HOME");
-                    if (dst == NULL)
-                    {
-                        printf("Error: $HOME is not initialized");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-                else { dst = args[1]; }
-
-                int result = chdir(dst);
-                if (result == -1)
-                {
-                    perror("Couldn't cd");
+                    printf("Error: $HOME is not initialized");
                     exit(EXIT_FAILURE);
                 }
+            }
+            else { dst = args[1]; }
 
-                exit(EXIT_SUCCESS);
-            }
-            else if (strcmp(args[0],"cat") == 0)
+            int result = chdir(dst);
+            if (result == -1)
             {
-                // TODO 
+                perror("Couldn't cd");
+                exit(EXIT_FAILURE);
             }
-            else if (strcmp(args[0],"cp") == 0)
-            {
-                // TODO 
-            }
-            else if (strcmp(args[0],"fg") == 0)
-            {
-                // TODO 
-            }
-            else if (strcmp(args[0],"jobs") == 0)
-            {
-                // TODO 
-            }
-            else if (strcmp(args[0],"exit") == 0)
-            {
-                exit(EXIT_SUCCESS); 
-            }
-            else 
-            {
-                // non implemented cmd,
-                // pass directly to execvp
+        }
+        else
+        {
+            //pid_t pid = getpid();
+            pid_t child_pid = fork();
 
-                execvp(args[0],args);
-            
-                _exit(EXIT_FAILURE);
+            if (child_pid == -1)
+            { 
+                perror("Failed to fork"); 
+                exit(EXIT_FAILURE);
+            }
+            else if (child_pid > 0)
+            {
+                // inside parent process
+
+                // check background flag
+                if (bg == 0)
+                {
+                    int status;
+                    waitpid(child_pid, &status, 0);
+                }
+            }
+            else if (child_pid == 0)
+            {
+                // inside child process
+                
+                // check for implemented built-in cmds
+                if (strcmp(args[0],"ls") == 0)
+                {
+                    // TODO
+                    exit(EXIT_SUCCESS); 
+                }
+                else if (strcmp(args[0],"cat") == 0)
+                {
+                    // TODO 
+                }
+                else if (strcmp(args[0],"cp") == 0)
+                {
+                    // TODO 
+                }
+                else if (strcmp(args[0],"fg") == 0)
+                {
+                    // TODO 
+                }
+                else if (strcmp(args[0],"jobs") == 0)
+                {
+                    // TODO 
+                }
+                else 
+                {
+                    // non implemented cmd,
+                    // pass directly to execvp
+
+                    execvp(args[0],args);
+                
+                    _exit(EXIT_FAILURE);
+                }
             }
         }
     }
