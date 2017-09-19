@@ -6,18 +6,21 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#define ARGS_SIZE 20
+
 // tokenize user's input command
-// returns number of tokens parsed
-int get_cmd(const char* prompt, char **file, char *args[], int *bg)
+// returns number of tokens parsed including binary file
+int get_cmd(const char* prompt, char *args[], int *bg)
 {
     printf("%s",prompt);
 
-    unsigned int cmd_len, token_count, i = 0;
+    unsigned int cmd_len = 0, token_count = 0, i = 0;
     char *token, *cmd = NULL;
     size_t linecap = 0;
 
     cmd_len = getline(&cmd, &linecap, stdin);
-    if (0 >= cmd_len) { return -1; }
+    if (cmd_len <= 0)  return -1; 
+    //if (strcmp(cmd,"\n")) return 0; 
 
     // check if last character in line is background flag
     *bg = (cmd[cmd_len-2] == '&') ? 1 : 0;
@@ -30,45 +33,38 @@ int get_cmd(const char* prompt, char **file, char *args[], int *bg)
             if (token[i] <= 32) { token[i] = '\0'; }
         }
 
-        if (strlen(token) > 0)
-        {
-            // first token is executable file
-            if (token_count == 0)
-            {
-                *file = token;
-                token_count++;
-            }
-            else 
-            {
-                args[token_count++] = token; 
-            }
-        }
+        if (strlen(token) > 0) { args[token_count++] = token; }
     }
+    
+    // if background flag high, erase last arg '&' 
+    if (*bg == 1) { args[token_count-1] = NULL; }
+    
+    free(cmd);
+    free(token);
 
     return token_count;
 }
 
 
-
 int main(void)
 {
-    char *file;
-    char *args[20];
-    int bg;
+    char *args[ARGS_SIZE];
+    int bg, i;
+
     while(1)
     {
+        // reset args
+        for (i = 0; i < ARGS_SIZE; i++) { args[i] = NULL; }
         bg = 0;
-        int token_count = get_cmd("\n> ", file, args, &bg); 
+
+        int token_count = get_cmd("\n> ", args, &bg); 
         if (token_count == -1) 
         {
-            perror("Failed to read user input");
+            perror("Exiting TinyShell");
             exit(EXIT_FAILURE);
         }
         
-        printf("%s\n",args[0]);
-
-
-        pid_t pid = getpid();
+        //pid_t pid = getpid();
         pid_t child_pid = fork();
 
         if (child_pid == -1)
@@ -76,24 +72,24 @@ int main(void)
             perror("Failed to fork"); 
             exit(EXIT_FAILURE);
         }
-        else if (child_pid == 0)
-        {
-            // inside child process
-            execvp(file, args);
-            _exit(EXIT_FAILURE);
-        }
         else if (child_pid > 0)
         {
             // inside parent process
-            if (bg == 1)
+            
+            // check background flag
+            if (bg == 0)
             {
                 int status;
-                waitpid(pid, &status, 0);
-                printf("%d",status);
+                waitpid(child_pid, &status, 0);
             }
-
-            printf("finito papa");
         }
-        
+        else if (child_pid == 0)
+        {
+            // inside child process
+            
+            execvp(args[0],args);
+            
+            _exit(EXIT_FAILURE);
+        }
     }
 }

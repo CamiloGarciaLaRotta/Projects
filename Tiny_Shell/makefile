@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -Wextra -Wshadow -Werror-implicit-function-declaration
+CFLAGS = -ggdb  -Wall -Wextra -Wshadow -Werror-implicit-function-declaration -pedantic -pedantic-errors
 
 all: clean compile run
 
