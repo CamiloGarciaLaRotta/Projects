@@ -4,13 +4,11 @@
 //  ID #260657037                                        //
 ///////////////////////////////////////////////////////////
 
-
 ///////////////////////////////////////////////////////////
 //  TODO    HANDLE SIGNALS 
-//          IMPLEMENT FG,JOBS
+//          IMPLEMENT FG
 //          VALGRIND
 ///////////////////////////////////////////////////////////
-
 
 // general purpose imports
 #include <stdio.h>
@@ -36,71 +34,26 @@
 typedef struct Job
 {
     pid_t pid;
-    char *cmd;
-    char *status;
-    struct Job *next;
+    char    cmd[CHAR_BUFFER];           
+    char    *status;        
+    struct  Job *next;      
 } Job;
 
 // tokenize user's input command
 // returns number of tokens parsed including binary file
-int get_cmd(const char* prompt, char *args[], int *bg, char **full_cmd)
-{
-    printf("%s",prompt);
+int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd);
 
-    unsigned int cmd_len = 0, token_count = 0, i = 0;
-    char *token, *cmd = NULL;
-    size_t linecap = 0;
+void handle_success(int display_msg);
+void handle_error(char *msg);
 
-    cmd_len = getline(&cmd, &linecap, stdin);
-    // if no input or EOF flag, exit program
-    if ((cmd_len <= 0) || (strcmp(cmd,"\000") == 0)) return -1;
-    // if newline or empty string, redisplay prompt
-    if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) return 0;
-    
-    // store full command
-    *full_cmd = cmd; 
+void print_welcome_banner(void);
 
-    // check if last character in line is background flag
-    *bg = (cmd[cmd_len-2] == '&') ? 1 : 0;
-    
-    while ((token = strsep(&cmd, " \t\n")) != NULL)
-    {
-        // replace non printable chars by space
-        for(i = 0; i < strlen(token); i++)
-        {
-            if (token[i] <= 32) { token[i] = '\0'; }
-        }
-
-        if (strlen(token) > 0) { args[token_count++] = token; }
-    }
-    
-    // if background flag high, erase last arg '&' 
-    if (*bg == 1) { args[token_count-1] = NULL; }
-    
-    free(cmd);
-    free(token);
-
-    return token_count;
-}
-
-void handle_success(int display_msg)
-{
-    if (display_msg == 1) { printf("Exiting TinyShell\n"); }
-    exit(EXIT_SUCCESS);
-}
-
-void handle_error(char *msg)
-{
-    perror(msg);
-    exit(EXIT_FAILURE);
-}
 
 int main(void)
 {
     char *args[ARGS_SIZE];
-    char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER];
+    char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER], full_cmd[CHAR_BUFFER];
     const char *separator = " > ";
-    char *full_cmd;
     int bg, i;
 
     // initialize jobs linked list
@@ -110,35 +63,25 @@ int main(void)
     Job *TAIL_JOB = HEAD_JOB;
     
     HEAD_JOB->pid = 0;
-    HEAD_JOB->cmd = NULL;
+    HEAD_JOB->cmd[0] = '\0';
     HEAD_JOB->status = NULL;
     HEAD_JOB->next = TAIL_JOB;
 
-    // welcome banner
-    printf("\n\n");
-    printf("\tWelcome to the TinyShell\n");
-    printf("\tECSE 427 - Assignment #1\n");
-    printf("\t------------------------\n");
-    printf("\tCamilo Garcia La Rotta\n");
-    printf("\tID #260657037\n");
-    printf("\t-----------------------\n");
-    printf("\n\n");
+    print_welcome_banner();
 
     while(1)
     {
         // reset args
         for (i = 0; i < ARGS_SIZE; i++) { args[i] = NULL; }
-        pwd[0] = prompt[0] = '\0';
+        pwd[0] = prompt[0] = full_cmd[0] = '\0';
         bg = 0;
-
-        full_cmd = NULL;
 
         // get present directory name
         getcwd(pwd, sizeof(pwd));
         strcat(prompt,pwd);
         strcat(prompt,separator);
 
-        int token_count = get_cmd(prompt, args, &bg, &full_cmd); 
+        int token_count = get_cmd(prompt, args, &bg, full_cmd); 
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
@@ -227,7 +170,7 @@ int main(void)
                     TAIL_JOB = TAIL_JOB->next;
                     
                     TAIL_JOB->pid = child_pid;
-                    TAIL_JOB->cmd = full_cmd;
+                    strcpy(TAIL_JOB->cmd, full_cmd);
                     TAIL_JOB->status = "TODO";
                     TAIL_JOB->next = NULL;
                 }
@@ -333,4 +276,75 @@ int main(void)
             }
         }
     }
+}
+
+
+// tokenize user's input command
+// returns number of tokens parsed including binary file
+int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd)
+{
+    printf("%s",prompt);
+
+    unsigned int cmd_len = 0, token_count = 0, i = 0;
+    char *token, *cmd = NULL;
+    size_t linecap = 0;
+
+    cmd_len = getline(&cmd, &linecap, stdin);
+    
+    // if no input or EOF flag, exit program
+    if ((cmd_len <= 0) || (strcmp(cmd,"\000") == 0)) return -1;
+    
+    // if newline or empty string, redisplay prompt
+    if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) return 0;
+    
+    // store full command
+    strcpy(full_cmd, cmd);
+    // remove carriage return
+    full_cmd[cmd_len-2] = '\0';
+
+    // check if last character in line is background flag
+    *bg = (cmd[cmd_len-2] == '&') ? 1 : 0;
+    
+    while ((token = strsep(&cmd, " \t\n")) != NULL)
+    {
+        // replace non printable chars by space
+        for(i = 0; i < strlen(token); i++)
+        {
+            if (token[i] <= 32) { token[i] = '\0'; }
+        }
+
+        if (strlen(token) > 0) { args[token_count++] = token; }
+    }
+    
+    // if background flag high, erase last arg '&' 
+    if (*bg == 1) { args[token_count-1] = NULL; }
+    
+    free(cmd);
+    free(token);
+
+    return token_count;
+}
+
+void handle_success(int display_msg)
+{
+    if (display_msg == 1) { printf("Exiting TinyShell\n"); }
+    exit(EXIT_SUCCESS);
+}
+
+void handle_error(char *msg)
+{
+    perror(msg);
+    exit(EXIT_FAILURE);
+}
+
+void print_welcome_banner(void)
+{
+    printf("\n\n");
+    printf("\tWelcome to the TinyShell\n");
+    printf("\tECSE 427 - Assignment #1\n");
+    printf("\t------------------------\n");
+    printf("\tCamilo Garcia La Rotta\n");
+    printf("\tID #260657037\n");
+    printf("\t-----------------------\n");
+    printf("\n\n");
 }
