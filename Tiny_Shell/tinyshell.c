@@ -200,7 +200,26 @@ int main(void)
              }
                 else if (strcmp(args[0],"cat") == 0)
                 {
-                    // TODO 
+                    int src_fd, read_bytes;
+		    char buf[CHAR_BUFFER];
+                    
+                    // open source and destination file descriptors
+		    src_fd = open(args[1], O_RDONLY);
+		    if (src_fd == -1) { handle_error("open()"); }
+
+                    // transfer bytes from source to destination
+		    while ((read_bytes = read(src_fd, buf, CHAR_BUFFER)) > 0)
+		    {
+			if (write(STDOUT_FILENO, buf, read_bytes) != read_bytes)
+			{
+			    handle_error("write()");
+			}
+		    }
+		    if (read_bytes == -1) { handle_error("read()"); }
+
+		    if (close(src_fd) == -1) { handle_error("close"); }
+
+                    handle_success(!DISPLAY_MSG);
                 }
                 else if (strcmp(args[0],"cp") == 0)
                 {
