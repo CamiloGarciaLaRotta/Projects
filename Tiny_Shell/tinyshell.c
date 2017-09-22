@@ -26,7 +26,7 @@
 
 ///////////////////////////////////////////////////////////
 //  TODO    HANDLE SIGNALS 
-//          IMPLEMENT CAT,CP,FG,JOBS
+//          IMPLEMENT CAT,FG,JOBS
 //          VALGRIND
 ///////////////////////////////////////////////////////////
 
@@ -184,7 +184,8 @@ int main(void)
 
                     file_count = syscall(SYS_getdents, fd, buf, CHAR_BUFFER);
                     if (file_count == -1) { handle_error("getdents"); }
-
+                    
+                    // display the name of all the retrieved files
                     for (buf_pos = 0; buf_pos < file_count; buf_pos += dir->d_reclen)
                     {
                         dir = (struct dirent *)(buf + buf_pos);
@@ -192,7 +193,7 @@ int main(void)
                     }
                     printf("\n");
                     
-                    close(fd);
+		    if (close(fd) == -1) { handle_error("close"); }
                    //free(dir);
                     
                     handle_success(!DISPLAY_MSG);
@@ -203,7 +204,35 @@ int main(void)
                 }
                 else if (strcmp(args[0],"cp") == 0)
                 {
-                    // TODO 
+                    int src_fd, dst_fd, read_bytes;
+		    char buf[CHAR_BUFFER];
+                    
+                    // create if non existent, overwrite if existent
+		    const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
+                    // rw-rw---
+		    const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
+
+                    // open source and destination file descriptors
+		    src_fd = open(args[1], O_RDONLY);
+		    if (src_fd == -1) { handle_error("open()"); }
+
+		    dst_fd = open(args[2], dst_open_flags, dst_perms);
+		    if (src_fd == -1) { handle_error("open()"); }
+
+                    // transfer bytes from source to destination
+		    while ((read_bytes = read(src_fd, buf, CHAR_BUFFER)) > 0)
+		    {
+			if (write(dst_fd, buf, read_bytes) != read_bytes)
+			{
+			    handle_error("write()");
+			}
+		    }
+		    if (read_bytes == -1) { handle_error("read()"); }
+
+		    if (close(src_fd) == -1) { handle_error("close"); }
+		    if (close(dst_fd) == -1) { handle_error("close"); }
+
+                    handle_success(!DISPLAY_MSG);
                 }
                 else if (strcmp(args[0],"fg") == 0)
                 {
