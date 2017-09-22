@@ -1,3 +1,17 @@
+///////////////////////////////////////////////////////////
+//  ECSE 427 - Assignment #1                             //
+//  Camilo Garcia La Rotta                               //   
+//  ID #260657037                                        //
+///////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////
+//  TODO    HANDLE SIGNALS 
+//          IMPLEMENT FG,JOBS
+//          VALGRIND
+///////////////////////////////////////////////////////////
+
+
 // general purpose imports
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,27 +27,23 @@
 #include <sys/stat.h>
 #include <sys/syscall.h>
 
-#define ARGS_SIZE 10
-#define CHAR_BUFFER 1024 
-#define DISPLAY_MSG 1
+// constants
+#define ARGS_SIZE 10        // max # of arguments in command line
+#define CHAR_BUFFER 1024    // standar read/write buffer size
+#define DISPLAY_MSG 1       // boolean for handle_success()
 
-///////////////////////////////////////////////////////////
-//  ECSE 427 - Assignment #1                             //
-//  Camilo Garcia La Rotta                               //   
-//  ID #260657037                                        //
-///////////////////////////////////////////////////////////
-
-
-///////////////////////////////////////////////////////////
-//  TODO    HANDLE SIGNALS 
-//          IMPLEMENT CAT,FG,JOBS
-//          VALGRIND
-///////////////////////////////////////////////////////////
-
+// linked list for job handling
+typedef struct Job
+{
+    pid_t pid;
+    char *cmd;
+    char *status;
+    struct Job *next;
+} Job;
 
 // tokenize user's input command
 // returns number of tokens parsed including binary file
-int get_cmd(const char* prompt, char *args[], int *bg)
+int get_cmd(const char* prompt, char *args[], int *bg, char **full_cmd)
 {
     printf("%s",prompt);
 
@@ -47,6 +57,9 @@ int get_cmd(const char* prompt, char *args[], int *bg)
     // if newline or empty string, redisplay prompt
     if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) return 0;
     
+    // store full command
+    *full_cmd = cmd; 
+
     // check if last character in line is background flag
     *bg = (cmd[cmd_len-2] == '&') ? 1 : 0;
     
@@ -87,7 +100,19 @@ int main(void)
     char *args[ARGS_SIZE];
     char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER];
     const char *separator = " > ";
+    char *full_cmd;
     int bg, i;
+
+    // initialize jobs linked list
+    Job *HEAD_JOB = malloc(sizeof(Job));
+    if (HEAD_JOB == NULL) { handle_error("malloc()"); }
+    
+    Job *TAIL_JOB = HEAD_JOB;
+    
+    HEAD_JOB->pid = 0;
+    HEAD_JOB->cmd = NULL;
+    HEAD_JOB->status = NULL;
+    HEAD_JOB->next = TAIL_JOB;
 
     // welcome banner
     printf("\n\n");
@@ -106,12 +131,14 @@ int main(void)
         pwd[0] = prompt[0] = '\0';
         bg = 0;
 
+        full_cmd = NULL;
+
         // get present directory name
         getcwd(pwd, sizeof(pwd));
         strcat(prompt,pwd);
         strcat(prompt,separator);
 
-        int token_count = get_cmd(prompt, args, &bg); 
+        int token_count = get_cmd(prompt, args, &bg, &full_cmd); 
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
@@ -126,7 +153,11 @@ int main(void)
         
         // implementation of built-in cmds
         // that don't require forking
-        if (strcmp(args[0], "exit") == 0) { handle_success(DISPLAY_MSG); }
+        if (strcmp(args[0], "exit") == 0) { 
+            free(HEAD_JOB);
+            free(TAIL_JOB);
+            handle_success(DISPLAY_MSG); 
+        }
         
         if (strcmp(args[0],"cd") == 0)
         {
@@ -144,6 +175,27 @@ int main(void)
             result = chdir(dst);
             if (result == -1) { handle_error("cd"); } 
         }
+        else if (strcmp(args[0],"fg") == 0)
+        {
+            // TODO 
+        }
+        else if (strcmp(args[0],"jobs") == 0)
+        {
+            // print jobs linked list
+            if (HEAD_JOB == TAIL_JOB) { printf("No background jobs.\n"); }
+            else
+            {
+                Job *j = HEAD_JOB;
+            
+                printf("PID\tSTATUS\tCOMMAND\n");
+                do 
+                { 
+                    j = j->next;
+                    printf("%d\t%s\t%s\n",j->pid,j->status,j->cmd); 
+                }
+                while (j != TAIL_JOB);
+            }
+        }
         else
         {
             // actions requiring forking
@@ -156,12 +208,28 @@ int main(void)
             if (child_pid > 0)
             {
                 // inside parent process
+                
 
                 // check background flag
                 if (bg == 0)
                 {
                     int status;
                     waitpid(child_pid, &status, 0);
+                }
+                else {
+                    // inform user of process PID
+                    printf("PID = %d\n",child_pid); 
+                
+                    // add process to jobs linked list
+                    TAIL_JOB->next = malloc(sizeof(Job));
+                    if (TAIL_JOB->next == NULL) { handle_error("malloc()"); }
+
+                    TAIL_JOB = TAIL_JOB->next;
+                    
+                    TAIL_JOB->pid = child_pid;
+                    TAIL_JOB->cmd = full_cmd;
+                    TAIL_JOB->status = "TODO";
+                    TAIL_JOB->next = NULL;
                 }
             }
             else if (child_pid == 0)
@@ -252,14 +320,6 @@ int main(void)
 		    if (close(dst_fd) == -1) { handle_error("close"); }
 
                     handle_success(!DISPLAY_MSG);
-                }
-                else if (strcmp(args[0],"fg") == 0)
-                {
-                    // TODO 
-                }
-                else if (strcmp(args[0],"jobs") == 0)
-                {
-                    // TODO 
                 }
                 else 
                 {
