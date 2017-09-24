@@ -60,8 +60,9 @@ typedef struct Job
 // returns number of tokens parsed
 int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd);
 
-// add/remove job from linked list
-void add_job(pid_t pid, char *cmd, char* status);
+// get/add/remove job from linked list
+Job *get_job(pid_t pid);
+int add_job(pid_t pid, char *cmd, char* status);
 int remove_job(pid_t pid);
 
 // exit program handlers
@@ -187,7 +188,10 @@ int main(void)
         }
         else if (strcmp(args[0],"fg") == 0)
         {
-            // TODO 
+            int pid, status;
+            if ((pid = atoi(args[1])) == 0) { handle_error("atoi()"); }
+
+            waitpid(pid, &status, 0);
         }
         else if (strcmp(args[0],"jobs") == 0)
         {
@@ -388,8 +392,24 @@ int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd)
     return token_count;
 }
 
+// retrieve job with input pid
+Job *get_job(pid_t pid)
+{
+    Job *j = HEAD_JOB;
+    
+    while (j != TAIL_JOB)
+    {
+        j = j->next;
+        if (j->pid == pid) { break; }
+    }
+
+    if (j == HEAD_JOB) { j = NULL; }
+
+    return j;
+}
+
 // add job to linked list
-void add_job(pid_t pid, char *cmd, char* status)
+int add_job(pid_t pid, char *cmd, char* status)
 {
     TAIL_JOB->next = malloc(sizeof(Job));
     if (TAIL_JOB->next == NULL) { handle_error("malloc()"); }
@@ -400,6 +420,8 @@ void add_job(pid_t pid, char *cmd, char* status)
     strcpy(TAIL_JOB->cmd, cmd);
     TAIL_JOB->status = status;
     TAIL_JOB->next = NULL;
+    
+    return 0;
 }
 
 // remove job from linked list
