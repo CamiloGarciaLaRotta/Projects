@@ -3,7 +3,7 @@
 //  Camilo Garcia La Rotta                               //   
 //  ID #260657037                                        //
 ///////////////////////////////////////////////////////////
-
+// TODO TODO TODO FIX DELETE FROM JOBS FIX DELETE DONE JOB INFINITE LOOP 
 ///////////////////////////////////////////////////////////
 //  TODO    HANDLE SIGNALS -> GET SIGNAL FROM JOBS 
 //          IMPLEMENT FG
@@ -56,27 +56,30 @@ typedef struct Job
 //                  FUNCTION DECLARATIONS                //
 ///////////////////////////////////////////////////////////
 
-// tokenize user's input command
-// returns number of tokens parsed
+// tokenize user's input command, returns number of tokens parsed
 int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd);
 
-// get/add/remove job from linked list
-Job *get_job(pid_t pid);
+// generate and store shell prompt with present working directory
+void generate_prompt(char pwd[], const char *separator, char *prompt);
+
+// Job linked list actions
 int add_job(pid_t pid, char *cmd, char* status);
 int remove_job(pid_t pid);
+int remove_done_jobs(void);
+void print_jobs(void);
+
+// signal handlers
+// kill current process 
+void handle_SIGINT(int signum);
+// remove finishes job from linked list 
+//void handle_SIGCHLD(int signum);
 
 // exit program handlers
 void handle_success(int display_msg);
 void handle_error(char *msg);
 
-// SIGINT signal handler
-void kill_curr_proc(int signum);
-
 // pause execution of program for a random amount of < 10 seconds
 void rand_sleep(void);
-
-// generate and store shell prompt with present working directory
-void generate_prompt(char pwd[], const char *separator, char *prompt);
 
 void print_welcome_banner(void);
 
@@ -84,7 +87,7 @@ void print_welcome_banner(void);
 //                  GLOBAL VARIABLES                     //
 ///////////////////////////////////////////////////////////
 
-Job *HEAD_JOB, *TAIL_JOB;
+Job *HEAD_JOB;
 
 
 int main(void)
@@ -103,15 +106,10 @@ int main(void)
     HEAD_JOB = malloc(sizeof(Job));
     if (HEAD_JOB == NULL) { handle_error("malloc()"); }
     
-    //TAIL_JOB = malloc(sizeof(Job));
-    //if (TAIL_JOB == NULL) { handle_error("malloc()"); }
-
-    TAIL_JOB = HEAD_JOB;
-    
     HEAD_JOB->pid = getpid();
     HEAD_JOB->cmd[0] = '\0';
     HEAD_JOB->status = "MAIN PROCESS";
-    HEAD_JOB->next = TAIL_JOB;
+    HEAD_JOB->next = NULL;
 
     // attach signal handlers
     // ignore SIGTSTP signal
@@ -121,10 +119,16 @@ int main(void)
     }
     
     // SIGINT kills current process
-    if (signal(SIGINT, kill_curr_proc) == SIG_ERR)
+    if (signal(SIGINT, handle_SIGINT) == SIG_ERR)
     {
         handle_error("SIGINT handler failed"); 
     }
+    
+    // SIGCHLD removes child job from linked list
+    //if (signal(SIGCHLD, handle_SIGCHLD) == SIG_ERR)
+    //{
+    //    handle_error("SIGCHLD handler failed"); 
+    //}
 
     print_welcome_banner();
 
@@ -153,13 +157,7 @@ int main(void)
         
         // implementation of built-in cmds that don't require forking
         if (strcmp(args[0], "exit") == 0) { 
-    //        if (HEAD_JOB == TAIL_JOB) { free(HEAD_JOB); }
-    //        else 
-    //        {
-                free(HEAD_JOB);
-    //            free(TAIL_JOB);
-                TAIL_JOB = NULL;
-    //        }
+            free(HEAD_JOB);
       
             handle_success(DISPLAY_MSG); 
         }
@@ -195,20 +193,10 @@ int main(void)
         }
         else if (strcmp(args[0],"jobs") == 0)
         {
-            // print jobs linked list
-            if (HEAD_JOB == TAIL_JOB) { printf("No background jobs.\n"); }
-            else
-            {
-                Job *j = HEAD_JOB;
+            if (remove_done_jobs() == -1) { handle_error("remove_done_jobs()"); }
             
-                printf("PID\tSTATUS\tCOMMAND\n");
-                do 
-                { 
-                    j = j->next;
-                    printf("%d\t%s\t%s\n",j->pid,j->status,j->cmd); 
-                }
-                while (j != TAIL_JOB);
-            }
+            if (HEAD_JOB->next == NULL) { printf("No background jobs.\n"); }
+            else { print_jobs(); }
         }
         else
         {
@@ -221,7 +209,6 @@ int main(void)
             if (child_pid > 0)
             {
                 // inside parent process
-                
 
                 // check background flag
                 if (bg == 0)
@@ -234,7 +221,7 @@ int main(void)
                     // inform user of process PID
                     printf("PID = %d\n",child_pid); 
                     
-                    char *tmp_status = "TODO"; //TODO
+                    char *tmp_status = "RUNNING";
                     add_job(child_pid, full_cmd, tmp_status);
                 }
             }
@@ -392,35 +379,28 @@ int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd)
     return token_count;
 }
 
-// retrieve job with input pid
-Job *get_job(pid_t pid)
+// generate and store shell prompt with present working directory
+void generate_prompt(char pwd[], const char *separator, char *prompt)
 {
-    Job *j = HEAD_JOB;
+    // get present directory name
+    getcwd(pwd, CHAR_BUFFER);
     
-    while (j != TAIL_JOB)
-    {
-        j = j->next;
-        if (j->pid == pid) { break; }
-    }
-
-    if (j == HEAD_JOB) { j = NULL; }
-
-    return j;
+    strcat(prompt,pwd);
+    strcat(prompt,separator);
 }
 
 // add job to linked list
-int add_job(pid_t pid, char *cmd, char* status)
+int add_job(pid_t pid, char *cmd, char *status)
 {
-    TAIL_JOB->next = malloc(sizeof(Job));
-    if (TAIL_JOB->next == NULL) { handle_error("malloc()"); }
-    
-    TAIL_JOB = TAIL_JOB->next;
-    
-    TAIL_JOB->pid = pid;
-    strcpy(TAIL_JOB->cmd, cmd);
-    TAIL_JOB->status = status;
-    TAIL_JOB->next = NULL;
-    
+    Job *j = (Job *)malloc(sizeof(Job));
+    if (j == NULL) { handle_error("malloc()"); } //TODO DO I HANDLE HERE OR IN MAIN?
+    j->pid = pid;
+    strcpy(j->cmd,cmd);
+    j->status = status;
+    j->next = HEAD_JOB->next;
+
+    HEAD_JOB->next = j;
+
     return 0;
 }
 
@@ -429,27 +409,115 @@ int remove_job(pid_t pid)
 {
     Job *j = HEAD_JOB;
 
-    while(j->next != TAIL_JOB)
+    while (j->next != NULL)
     {
         if (j->next->pid == pid) { break; }
         j = j->next;
     }
 
-    if (j->next->pid == pid) 
+    if (j->next->pid == pid)
     {
-        // remove node, reattach neighbours
-        Job *k = j->next;
-        j->next = j->next->next;
-        
-        free(k);
+        Job *k;
 
+        if (j == HEAD_JOB)
+        {
+            // node to be removed is first in linked list
+            k = HEAD_JOB->next;
+            HEAD_JOB->next = HEAD_JOB->next->next;
+        }
+        else
+        {
+            k = j->next;
+            j->next = j->next->next;
+        }
+
+        free(k);
         return 0;
     }
     else
     {
-        // error, no job with given pid found
+        // no node with given pid found
         return -1;
-    } 
+    }
+}
+
+// remove DONE jobs from linked list
+int remove_done_jobs(void)
+{
+    pid_t pid;
+    Job *j = HEAD_JOB->next;
+
+    while (j != NULL)
+    {
+        if (strcmp(j->status,"DONE") == 0)
+        {
+            pid = j->pid;
+            j = j->next;
+
+            if (remove_job(pid) == -1) { return -1; }
+        }
+        else { j = j->next; }
+    }
+
+    return 0;
+}
+
+// print linked list of jobs with current status
+void print_jobs(void)
+{
+    int status;
+    Job *j = HEAD_JOB;
+
+    printf("PID\t\tSTATUS\t\tCOMMAND\n");
+    
+    while (j->next != NULL)
+    { 
+        j = j->next;
+
+        j->status = (waitpid(j->pid,&status,WNOHANG) == 0) ? "RUNNING" : "DONE";
+         
+        printf("%d\t\t%s\t\t%s\n",j->pid,j->status,j->cmd); 
+    }
+}
+
+// if SIGINT caught, kill current process
+void handle_SIGINT(int signum)
+{
+    if (getpid() == HEAD_JOB->pid)
+    {
+        // only main process handles SIGINT
+        printf("\nCaptured signal: %d\n",signum);
+
+        if (HEAD_JOB->next == NULL)
+        {
+            // no other processes have been added
+            // kill the tinyshell
+            printf("No other processes running left to kill\n");
+            printf("Killing the main TinyShell ...\n");
+            raise(SIGTERM);
+        }
+
+        // find an active child process
+        int status;
+        Job *j = HEAD_JOB->next;
+        
+        while(j->next != NULL)
+        {
+            if (waitpid(j->pid,&status,WNOHANG) == 0)
+            { 
+                if (kill(j->pid, SIGTERM) == -1) { handle_error("kill()"); }
+                printf("killed process with PID: %d\n",j->pid);
+                
+                if (remove_job(j->pid) == -1) { handle_error("remove_job()"); }
+                
+                break; 
+            } 
+
+            j = j->next;
+        }
+        
+        j = NULL;
+    }
 }
 
 // program exit handlers 
@@ -463,57 +531,8 @@ void handle_error(char *msg)
     perror(msg);
     exit(EXIT_FAILURE);
 }
-
-//void kil(int signum)
-void kill_curr_proc(int signum)
-{
-    printf("\nCaptured signal: %d\n",signum);
-
-    Job *j = HEAD_JOB;
-    
-    // find current active job
-    while(j != TAIL_JOB)
-    {
-        j = j->next;
-        if (strcmp(j->status,"running") == 0) { break; }
-    }
-
-    if (j == HEAD_JOB)
-    {
-        // no other processes have been added
-        // kill the tinyshell
-        printf("No other processes running left to kill\n");
-        printf("Killing the main TinyShell ...\n");
-        raise(SIGTERM);
-    }
-    
-    // at this point j points either to the last job added to the link list
-    // or to another process which is currently rnning
-    // either way we kill it
-    if (kill(j->pid, SIGTERM) == -1) { handle_error("kill()"); }
-    
-    if (remove_job(j->pid) == -1) { handle_error("remove_job()"); }
-    
-    j = NULL;
-
-    printf("killed process with PID: %d\n",j->pid);
-    
-    // reattach signal to handler
-    //if(signal(SIGINT, kill_curr_proc) ==SIG_ERR) { handle_error("signal()"); }
-}
-
 // pause execution of program for a random amount of < 10 seconds
-void rand_sleep(void) { sleep(rand() % 10); }
-
-// generate and store shell prompt with present working directory
-void generate_prompt(char pwd[], const char *separator, char *prompt)
-{
-    // get present directory name
-    getcwd(pwd, CHAR_BUFFER);
-    
-    strcat(prompt,pwd);
-    strcat(prompt,separator);
-}
+void rand_sleep(void) { sleep(rand() % 15); }
 
 void print_welcome_banner(void)
 {
