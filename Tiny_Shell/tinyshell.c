@@ -3,10 +3,9 @@
 //  Camilo Garcia La Rotta                               //   
 //  ID #260657037                                        //
 ///////////////////////////////////////////////////////////
-// TODO TODO TODO FIX DELETE FROM JOBS FIX DELETE DONE JOB INFINITE LOOP 
+
 ///////////////////////////////////////////////////////////
-//  TODO    HANDLE SIGNALS -> GET SIGNAL FROM JOBS 
-//          IMPLEMENT FG
+//  TODO    IMPLEMENT >
 //          VALGRIND
 ///////////////////////////////////////////////////////////
 
@@ -71,14 +70,12 @@ void print_jobs(void);
 // signal handlers
 // kill current process 
 void handle_SIGINT(int signum);
-// remove finishes job from linked list 
-//void handle_SIGCHLD(int signum);
 
 // exit program handlers
 void handle_success(int display_msg);
 void handle_error(char *msg);
 
-// pause execution of program for a random amount of < 10 seconds
+// pause execution of program for a random amount of < 15 seconds
 void rand_sleep(void);
 
 void print_welcome_banner(void);
@@ -189,6 +186,8 @@ int main(void)
             int pid, status;
             if ((pid = atoi(args[1])) == 0) { handle_error("atoi()"); }
 
+            printf("Bringing PID: %d to foreground.\n",pid);
+            
             waitpid(pid, &status, 0);
         }
         else if (strcmp(args[0],"jobs") == 0)
@@ -222,7 +221,10 @@ int main(void)
                     printf("PID = %d\n",child_pid); 
                     
                     char *tmp_status = "RUNNING";
-                    add_job(child_pid, full_cmd, tmp_status);
+                    if (add_job(child_pid, full_cmd, tmp_status) == -1)
+                    {
+                        handle_error("add_job()");
+                    }
                 }
             }
             else if (child_pid == 0)
@@ -393,7 +395,8 @@ void generate_prompt(char pwd[], const char *separator, char *prompt)
 int add_job(pid_t pid, char *cmd, char *status)
 {
     Job *j = (Job *)malloc(sizeof(Job));
-    if (j == NULL) { handle_error("malloc()"); } //TODO DO I HANDLE HERE OR IN MAIN?
+    if (j == NULL) { return -1; }
+
     j->pid = pid;
     strcpy(j->cmd,cmd);
     j->status = status;
@@ -531,6 +534,7 @@ void handle_error(char *msg)
     perror(msg);
     exit(EXIT_FAILURE);
 }
+
 // pause execution of program for a random amount of < 10 seconds
 void rand_sleep(void) { sleep(rand() % 15); }
 
@@ -545,3 +549,5 @@ void print_welcome_banner(void)
     printf("\t-----------------------\n");
     printf("\n\n");
 }
+
+
