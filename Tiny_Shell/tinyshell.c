@@ -56,7 +56,7 @@ typedef struct Job
 ///////////////////////////////////////////////////////////
 
 // tokenize user's input command, returns number of tokens parsed
-int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd);
+int get_cmd(const char* prompt, char *args[], int *bg, int *redir, char *full_cmd);
 
 // generate and store shell prompt with present working directory
 void generate_prompt(char pwd[], const char *separator, char *prompt);
@@ -93,7 +93,7 @@ int main(void)
     char *args[ARGS_SIZE];
     char pwd[CHAR_BUFFER], prompt[CHAR_BUFFER], full_cmd[CHAR_BUFFER];
     const char *separator = " > ";
-    int bg, i;
+    int bg,redir, i;
     
     // generate seed
     time_t now;
@@ -121,12 +121,6 @@ int main(void)
         handle_error("SIGINT handler failed"); 
     }
     
-    // SIGCHLD removes child job from linked list
-    //if (signal(SIGCHLD, handle_SIGCHLD) == SIG_ERR)
-    //{
-    //    handle_error("SIGCHLD handler failed"); 
-    //}
-
     print_welcome_banner();
 
     while(1)
@@ -134,12 +128,12 @@ int main(void)
         // reset parsing and prompt variables
         for (i = 0; i < ARGS_SIZE; i++) { args[i] = NULL; }
         pwd[0] = prompt[0] = full_cmd[0] = '\0';
-        bg = 0;
+        bg = redir = 0;
     
         generate_prompt(pwd, separator, prompt);
 
         // tokenize input command
-        int token_count = get_cmd(prompt, args, &bg, full_cmd); 
+        int token_count = get_cmd(prompt, args, &bg, &redir, full_cmd); 
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
@@ -266,24 +260,42 @@ int main(void)
              }
                 else if (strcmp(args[0],"cat") == 0)
                 {
-                    int src_fd, read_bytes;
+                    int src_fd, dst_fd, read_bytes;
 		    char buf[CHAR_BUFFER];
                     
                     // open source and destination file descriptors
 		    src_fd = open(args[1], O_RDONLY);
 		    if (src_fd == -1) { handle_error("open()"); }
+                    
+                    if (redir == 1)
+                    {
+                        // create if non existent, overwrite if existent
+                        const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
+                        // rw-rw---
+                        const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
+                        
+                        // output redirection towards another file
+                        dst_fd = open(args[3], dst_open_flags, dst_perms);
+		        if (dst_fd == -1) { handle_error("open()"); }
+                    }
+                    else { dst_fd = STDOUT_FILENO; }
 
                     // transfer bytes from source to destination
 		    while ((read_bytes = read(src_fd, buf, CHAR_BUFFER)) > 0)
 		    {
-			if (write(STDOUT_FILENO, buf, read_bytes) != read_bytes)
+			if (write(dst_fd, buf, read_bytes) != read_bytes)
 			{
 			    handle_error("write()");
 			}
 		    }
 		    if (read_bytes == -1) { handle_error("read()"); }
 
+                    // close file descriptors
 		    if (close(src_fd) == -1) { handle_error("close"); }
+                    if (redir == 1) 
+                    {
+		        if (close(dst_fd) == -1) { handle_error("close"); }
+                    }
 
                     handle_success(!DISPLAY_MSG);
                 }
@@ -335,7 +347,7 @@ int main(void)
 
 // tokenize user's input command
 // returns number of tokens parsed including binary file
-int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd)
+int get_cmd(const char* prompt, char *args[], int *bg, int *redir, char *full_cmd)
 {
     printf("%s",prompt);
 
@@ -368,6 +380,9 @@ int get_cmd(const char* prompt, char *args[], int *bg, char *full_cmd)
         {
             if (token[i] <= 32) { token[i] = '\0'; }
         }
+
+        // identify redirection ">"
+        if (strcmp(token,">") == 0) { *redir = 1; }
 
         if (strlen(token) > 0) { args[token_count++] = token; }
     }
@@ -491,21 +506,15 @@ void handle_SIGINT(int signum)
         // only main process handles SIGINT
         printf("\nCaptured signal: %d\n",signum);
 
-        if (HEAD_JOB->next == NULL)
-        {
-            // no other processes have been added
-            // kill the tinyshell
-            printf("No other processes running left to kill\n");
-            printf("Killing the main TinyShell ...\n");
-            raise(SIGTERM);
-        }
 
         // find an active child process
-        int status;
-        Job *j = HEAD_JOB->next;
+        int status, deleted_job = 0;
+        Job *j = HEAD_JOB;
         
         while(j->next != NULL)
         {
+            j = j->next;
+
             if (waitpid(j->pid,&status,WNOHANG) == 0)
             { 
                 if (kill(j->pid, SIGTERM) == -1) { handle_error("kill()"); }
@@ -513,13 +522,18 @@ void handle_SIGINT(int signum)
                 
                 if (remove_job(j->pid) == -1) { handle_error("remove_job()"); }
                 
+                deleted_job = 1;
                 break; 
             } 
-
-            j = j->next;
         }
         
-        j = NULL;
+        if (j == HEAD_JOB || deleted_job == 0)
+        {
+            printf("No other processes running left to kill\n");
+            printf("Killing the main TinyShell ...\n");
+            raise(SIGTERM);
+        }
+        else { j = NULL; }
     }
 }
 
