@@ -5,8 +5,7 @@
 ///////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////
-//  TODO    IMPLEMENT >
-//          VALGRIND
+//  TODO        VALGRIND
 ///////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////
@@ -45,7 +44,8 @@
 // linked list for job handling
 typedef struct Job 
 {
-    pid_t pid;
+    pid_t pid;                  // pid of the main shell process
+    pid_t fg_child_pid;         // pid of current fg child process
     char    cmd[CHAR_BUFFER];   // full cmd of the job        
     char    *status;            // current status of the job
     struct  Job *next;          // next linked list job
@@ -100,7 +100,7 @@ int main(void)
     srand((unsigned int) (time(&now)));
 
     // initialize jobs linked list
-    HEAD_JOB = malloc(sizeof(Job));
+    HEAD_JOB = (Job *)malloc(sizeof(Job));
     if (HEAD_JOB == NULL) { handle_error("malloc()"); }
     
     HEAD_JOB->pid = getpid();
@@ -137,6 +137,8 @@ int main(void)
         if (token_count == -1) 
         {
             // no cmd entered or EOF flag
+            free(HEAD_JOB);
+
             handle_success(DISPLAY_MSG);
         }
         if (token_count == 0)
@@ -207,6 +209,9 @@ int main(void)
                 if (bg == 0)
                 {
                     int status;
+                    
+                    // store current foreground job
+                    HEAD_JOB->fg_child_pid = child_pid;
                     waitpid(child_pid, &status, 0);
                 }
                 else
@@ -352,16 +357,25 @@ int get_cmd(const char* prompt, char *args[], int *bg, int *redir, char *full_cm
     printf("%s",prompt);
 
     unsigned int cmd_len = 0, token_count = 0, i = 0;
-    char *token, *cmd = NULL;
+    char *token;
+    char *cmd = NULL;
     size_t linecap = 0;
 
     cmd_len = getline(&cmd, &linecap, stdin);
     
     // if no input or EOF flag, exit program
-    if ((cmd_len <= 0) || (strcmp(cmd,"\000") == 0)) return -1;
-    
+    if ((cmd_len <= 0) || (strcmp(cmd,"\000") == 0))
+    {
+        free(cmd);
+        return -1;
+    }
+
     // if newline or empty string, redisplay prompt
-    if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) return 0;
+    if ((strcmp(cmd," ") == 0) || (strcmp(cmd,"\n") == 0)) 
+    {
+        free(cmd);
+        return 0;
+    }
     
     // store full command
     strcpy(full_cmd, cmd);
@@ -501,39 +515,26 @@ void print_jobs(void)
 // if SIGINT caught, kill current process
 void handle_SIGINT(int signum)
 {
+    // only the main shell process handles SIGINT
     if (getpid() == HEAD_JOB->pid)
     {
-        // only main process handles SIGINT
         printf("\nCaptured signal: %d\n",signum);
 
-
-        // find an active child process
-        int status, deleted_job = 0;
-        Job *j = HEAD_JOB;
+        int status;
+        pid_t pid_to_kill = HEAD_JOB->fg_child_pid;
         
-        while(j->next != NULL)
+        if (waitpid(pid_to_kill,&status,WNOHANG) == 0)
         {
-            j = j->next;
-
-            if (waitpid(j->pid,&status,WNOHANG) == 0)
-            { 
-                if (kill(j->pid, SIGTERM) == -1) { handle_error("kill()"); }
-                printf("killed process with PID: %d\n",j->pid);
-                
-                if (remove_job(j->pid) == -1) { handle_error("remove_job()"); }
-                
-                deleted_job = 1;
-                break; 
-            } 
+            // child fg process still running
+            if (kill(pid_to_kill, SIGTERM) == -1) { handle_error("kill()"); }
+            printf("killed process with PID: %d\n", pid_to_kill);
         }
-        
-        if (j == HEAD_JOB || deleted_job == 0)
+        else
         {
-            printf("No other processes running left to kill\n");
+            printf("No fg process running left to kill\n");
             printf("Killing the main TinyShell ...\n");
             raise(SIGTERM);
         }
-        else { j = NULL; }
     }
 }
 
@@ -550,7 +551,15 @@ void handle_error(char *msg)
 }
 
 // pause execution of program for a random amount of < 10 seconds
-void rand_sleep(void) { sleep(rand() % 15); }
+void rand_sleep(void) 
+{ 
+    int w,rem;
+
+    w = rand() % 10;
+    rem = sleep(w); 
+
+    while(rem != 0) { rem = sleep(rem); }
+}
 
 void print_welcome_banner(void)
 {
