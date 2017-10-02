@@ -5,27 +5,20 @@
 
 int main()
 {
-        // Open output file
-        int fd = open("output.txt", O_WRONLY | O_CREAT, 0644);
-        if (0 > fd)
-        {
-            perror("Error opening output.txt");
-            return(EXIT_FAILURE);
-        }
-        
-        // Duplicate stdout to output file
-        int err = dup2(fd,STDOUT_FILENO);
-        if (0 > err) 
-        {
-            perror("Error duplicating output.txt to STDOUT");
-            return(EXIT_FAILURE);
-        }
+    int fd;
 
-        close(fd);
+    // close STDOUT 
+    close(STDOUT_FILENO);
 
-	printf("A simple program output.");
-        
-        fflush(stdout);
+    // open fd pointing towards file, 
+    // it will be given the first free index, which was that of STDOUT
+    fd = open("redirect.txt", O_WRONLY | O_CREAT, 0644);
+    if (fd == -1) { return(EXIT_FAILURE); }
 
-	return 0;
+    printf("A simple program output.\n");
+
+    // flush buffer of file descriptor
+    if (fsync(fd) == -1) { return(EXIT_FAILURE); }
+
+    return EXIT_SUCCESS;
 }
