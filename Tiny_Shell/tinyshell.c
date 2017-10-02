@@ -61,7 +61,7 @@ void generate_prompt(char pwd[], const char *separator, char *prompt);
 int add_job(pid_t pid, char *cmd, char* status);
 int remove_job(pid_t pid);
 int remove_done_jobs(void);
-void print_jobs(void);
+void print_jobs(int fd);
 
 // signal handlers
 // kill current process 
@@ -189,10 +189,25 @@ int main(void)
         }
         else if (strcmp(args[0],"jobs") == 0)
         {
+            int dst_fd;
+
             if (remove_done_jobs() == -1) { handle_error("remove_done_jobs()"); }
             
-            if (HEAD_JOB->next == NULL) { printf("No background jobs.\n"); }
-            else { print_jobs(); }
+            if (redir == 1)
+            {
+                // output redirection towards another file
+                dst_fd = open(args[2], dst_open_flags, dst_perms);
+	        if (dst_fd == -1) { handle_error("open()"); }
+            }
+            else { dst_fd = STDOUT_FILENO; }
+
+            if (HEAD_JOB->next == NULL) { dprintf(dst_fd,"No background jobs.\n"); }
+            else { print_jobs(dst_fd); }
+
+            if (redir == 1)
+            {
+                if (close(dst_fd) == -1) { handle_error("close()"); }
+            }
         }
         else
         {
@@ -527,12 +542,12 @@ int remove_done_jobs(void)
 }
 
 // print linked list of jobs with current status
-void print_jobs(void)
+void print_jobs(int fd)
 {
     int status;
     Job *j = HEAD_JOB;
 
-    printf("PID\t\tSTATUS\t\tCOMMAND\n");
+    dprintf(fd,"PID\t\tSTATUS\t\tCOMMAND\n");
     
     while (j->next != NULL)
     { 
@@ -540,7 +555,7 @@ void print_jobs(void)
 
         j->status = (waitpid(j->pid,&status,WNOHANG) == 0) ? "RUNNING" : "DONE";
          
-        printf("%d\t\t%s\t\t%s\n",j->pid,j->status,j->cmd); 
+        dprintf(fd,"%d\t\t%s\t\t%s\n",j->pid,j->status,j->cmd); 
     }
 }
 
