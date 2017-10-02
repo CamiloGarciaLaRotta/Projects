@@ -180,12 +180,25 @@ int main(void)
         }
         else if (strcmp(args[0],"fg") == 0)
         {
-            int pid, status;
+            int dst_fd, pid, status;
             if ((pid = atoi(args[1])) == 0) { handle_error("atoi()"); }
 
-            printf("Bringing PID: %d to foreground.\n",pid);
+            if (redir == 1)
+            {
+                // output redirection towards another file
+                dst_fd = open(args[3], dst_open_flags, dst_perms);
+	        if (dst_fd == -1) { handle_error("open()"); }
+            }
+            else { dst_fd = STDOUT_FILENO; }
+
+            dprintf(dst_fd,"Bringing PID: %d to foreground.\n",pid);
             
             waitpid(pid, &status, 0);
+
+            if (redir == 1)
+            {
+                if (close(dst_fd) == -1) { handle_error("close()"); }
+            }
         }
         else if (strcmp(args[0],"jobs") == 0)
         {
