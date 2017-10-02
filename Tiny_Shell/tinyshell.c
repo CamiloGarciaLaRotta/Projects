@@ -5,10 +5,6 @@
 ///////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////
-//  TODO        VALGRIND
-///////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////
 //                  HEADER FILES                         //
 ///////////////////////////////////////////////////////////
 
@@ -85,6 +81,11 @@ void print_welcome_banner(void);
 ///////////////////////////////////////////////////////////
 
 Job *HEAD_JOB;
+
+// create if non existent, overwrite if existent
+const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
+// rw-rw---
+const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
 
 
 int main(void)
@@ -236,30 +237,71 @@ int main(void)
                 // check for implemented built-in cmds
                 if (strcmp(args[0],"ls") == 0)
                 {
-                    int fd, file_count, buf_pos;
+                    int src_fd, dst_fd, file_count, buf_pos;
                     char buf[CHAR_BUFFER];
-                    char *path;
+                    char *src_path, *dst_path;
                     struct dirent *dir;
                    
-                    // define target path
-                    path = (args[1] == NULL) ? "." : args[1]; 
-                    
-                    fd = open(path, O_RDONLY | O_DIRECTORY);
-                    if (fd == -1) { handle_error("open()"); }
+                    // define source and destination path
+                    if (redir == 1)
+                    {
+                        if (strcmp(args[1],">") == 0)
+                        {
+                            // no source target defines, pwd implied
+                            src_path = ".";
+                            dst_path = args[2];
+                        }
+                        else
+                        {
+                            // user specified different repo to ls
+                            src_path = args[1];
+                            dst_path = args[3];
+                        }
+                    }
+                    else
+                    {
+                        // no redirection
+                        dst_path = NULL;
 
-                    file_count = syscall(SYS_getdents, fd, buf, CHAR_BUFFER);
+                        if (args[1] == NULL)
+                        {
+                            // ls command with no arguments 
+                            src_path = ".";
+                        }
+                        else
+                        {
+                            // user specified different repo to ls
+                            src_path = args[1];
+                        }
+                    }
+                    
+                    src_fd = open(src_path, O_RDONLY | O_DIRECTORY);
+                    if (src_fd == -1) { handle_error("open()"); }
+
+                    file_count = syscall(SYS_getdents, src_fd, buf, CHAR_BUFFER);
                     if (file_count == -1) { handle_error("getdents"); }
                     
+                    if (redir == 1)
+                    {
+                        // output redirection towards another file
+                        dst_fd = open(dst_path, dst_open_flags, dst_perms);
+		        if (dst_fd == -1) { handle_error("open()"); }
+                    }
+                    else { dst_fd = STDOUT_FILENO; }
+
                     // display the name of all the retrieved files
                     for (buf_pos = 0; buf_pos < file_count; buf_pos += dir->d_reclen)
                     {
                         dir = (struct dirent *)(buf + buf_pos);
-                        printf("%s\t\t",dir->d_name-1);
+                        dprintf(dst_fd,"%s\t\t",dir->d_name-1);
                     }
                     printf("\n");
                     
-		    if (close(fd) == -1) { handle_error("close"); }
-                   //free(dir);
+		    if (close(src_fd) == -1) { handle_error("close"); }
+		    if (redir == 1)
+                    {
+                        if (close(dst_fd) == -1) { handle_error("close"); }
+                    }
                     
                     handle_success(!DISPLAY_MSG);
              }
@@ -274,11 +316,6 @@ int main(void)
                     
                     if (redir == 1)
                     {
-                        // create if non existent, overwrite if existent
-                        const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
-                        // rw-rw---
-                        const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
-                        
                         // output redirection towards another file
                         dst_fd = open(args[3], dst_open_flags, dst_perms);
 		        if (dst_fd == -1) { handle_error("open()"); }
@@ -309,11 +346,6 @@ int main(void)
                     int src_fd, dst_fd, read_bytes;
 		    char buf[CHAR_BUFFER];
                     
-                    // create if non existent, overwrite if existent
-		    const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
-                    // rw-rw---
-		    const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
-
                     // open source and destination file descriptors
 		    src_fd = open(args[1], O_RDONLY);
 		    if (src_fd == -1) { handle_error("open()"); }
