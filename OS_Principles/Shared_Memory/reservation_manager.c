@@ -9,24 +9,20 @@
 ///////////////////////////////////////////////////////////
 
 // general purpose imports
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
 #include <signal.h>
 #include <string.h>
 
-/*
- *  #include <sys/types.h>
- *  #include <sys/wait.h>
- *  #include <dirent.h>
- *  #include <time.h>
- *
- *  // syscalls and signals
- *  #include <fcntl.h>
- *  #include <unistd.h>
- *  #include <sys/stat.h>
- *  #include <sys/syscall.h>
- */
+// shared memory imports
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <sys/wait.h>
+#include <sys/types.h>
+
 
 ///////////////////////////////////////////////////////////
 //                  CONSTANTS                            //
@@ -38,6 +34,7 @@
 #define BUFF_SIZE           80           
 #define MAX_ARGS            4          
 #define ARG_SIZE            BUFF_SIZE / MAX_ARGS
+
 
 ///////////////////////////////////////////////////////////
 //                  DATA STRUCTURES                      //
@@ -52,6 +49,7 @@ typedef struct RESERVATION
 
 } RESERVATION;
 
+
 ///////////////////////////////////////////////////////////
 //                  FUNCTION DECLARATIONS                //
 ///////////////////////////////////////////////////////////
@@ -60,8 +58,11 @@ typedef struct RESERVATION
 unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE]);
 
 // manager actions
+int create_shm(void);
+int create_manager(void);
 void init_manager(void);
 void print_manager(void);
+int add_reserve(char *client, char *section, unsigned int table_num);
 
 // signal handlers
 void handle_SIGINT(int signum);
@@ -69,37 +70,41 @@ void handle_SIGINT(int signum);
 // exit program handlers
 void handle_success(void);
 void handle_error(char *msg);
+int deallocate_mem(void);
 
+// miscelaneous
 void print_welcome_banner(void);
+
 
 ///////////////////////////////////////////////////////////
 //                  GLOBAL VARIABLES                     //
 ///////////////////////////////////////////////////////////
 
-RESERVATION R_manager[2 * TABLES_PER_SECTION];
+RESERVATION *shared_manager;
 
-/*
- * // create if non existent, overwrite if existent
- * const int dst_open_flags = O_CREAT | O_WRONLY | O_TRUNC;
- * // rw-rw---
- * const mode_t dst_perms =  S_IRUSR | S_IWUSR | S_IRGRP;
- */
+// shared memory params
+const char* mem_name = "/cgarci26";
+const size_t mem_size = sizeof(2 * TABLES_PER_SECTION * sizeof(RESERVATION));
+
+// shared memory flags
+const int open_flag = O_CREAT | O_RDWR;
+const int protection = PROT_READ | PROT_WRITE;
+const int visibility = MAP_ANONYMOUS | MAP_SHARED;
+const mode_t permissions = S_IRUSR | S_IWUSR | S_IRGRP;
 
 int main(void)
 {
-    // initialize command parsing variables
-    int i;
-    char args[MAX_ARGS][20];
+    int i;                      
+    char args[MAX_ARGS][20];    
+    
     for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
     
-    // initialize reservation manager
-    init_manager(); 
-
+    // configure reservation manager
+    if (create_shm() == -1) { handle_error("create_shm()"); }
+    init_manager();
+    
     // attach signal handlers
-    if (signal(SIGINT, handle_SIGINT) == SIG_ERR)
-    {
-        handle_error("SIGINT handler failed"); 
-    }
+    if (signal(SIGINT, handle_SIGINT) == SIG_ERR) { handle_error("SIGINT handler"); }
 
     print_welcome_banner();
 
@@ -107,226 +112,60 @@ int main(void)
     {
         // tokenize input command
         int token_count = get_cmd(args); 
-        if (token_count == 0)
-        {
-            // user did carriage return, display prompt again
-            continue;
-        }
+        if (token_count == 0) { continue; }
         
         // implementation of built-in cmds that don't require forking
-        if (strcmp(args[0], "exit") == 0) { handle_success(); }
-        if (strcmp(args[0], "init") == 0) { init_manager(); } // TODO ADD SYNCHRO
-        if (strcmp(args[0], "status") == 0) { print_manager(); }
-        if (strcmp(args[0], "reserve") == 0)
+        if (strcmp(args[0], "exit") == 0)
+        {
+            if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+            
+            handle_success();
+        }
+
+        pid_t child_pid = fork();
+        if (child_pid == -1) { handle_error("fork()"); }
+
+        if (child_pid > 0)
         {
             int status;
-            unsigned int table_num;
-            
-            if (token_count == 3) { table_num = 0; }
-            else if (token_count == 4) { table_num = atoi(arg[3]); }
-            else
-            {
-                printf("bad request");
-                continue;
+            waitpid(child_pid, &status, 0);
+        }
+        else if (child_pid == 0)
+        {
+            if (strcmp(args[0], "init") == 0) { 
+                init_manager();
+            } 
+            else if (strcmp(args[0], "status") == 0)
+            { 
+                print_manager(); 
             }
+            else if (strcmp(args[0], "reserve") == 0)
+            {
+                unsigned int table_num;
+                
+                if (token_count == 3) { table_num = 0; }
+                else if (token_count == 4) { table_num = atoi(args[3]); }
+                else
+                {
+                    printf("bad request");
+                }
 
-            if (add_reserve(arg[1],arg[2],table_num) == -1)
-            {
-                printf("failed to add reservation"); 
+                if (add_reserve(args[1],args[2],table_num) == -1)
+                {
+                    printf("failed to add reservation"); 
+                }
+                else
+                {
+                    printf("GG"); 
+                }
             }
-            else
-            {
-                printf("GG"); 
-            }
+            
+            handle_success(); 
         }
         
         // clear arguments
         for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
     }
-
-//            // actions requiring forking
-//            
-//            pid_t child_pid = fork();
-//
-//            if (child_pid == -1) { handle_error("fork()"); }
-//            
-//            if (child_pid > 0)
-//            {
-//                // inside parent process
-//
-//                // check background flag
-//                if (bg == 0)
-//                {
-//                    int status;
-//                    
-//                    // store current foreground job
-//                    HEAD_JOB->fg_child_pid = child_pid;
-//                    waitpid(child_pid, &status, 0);
-//                }
-//                else
-//                {
-//                    // inform user of process PID
-//                    printf("PID = %d\n",child_pid); 
-//                    
-//                    char *tmp_status = "RUNNING";
-//                    if (add_job(child_pid, full_cmd, tmp_status) == -1)
-//                    {
-//                        handle_error("add_job()");
-//                    }
-//                }
-//            }
-//            else if (child_pid == 0)
-//            {
-//                // inside child process
-//                
-//                // pause for < 10sec facilitate visualizing bg fg processes
-//                rand_sleep();
-//                
-//                // check for implemented built-in cmds
-//                if (strcmp(args[0],"ls") == 0)
-//                {
-//                    int src_fd, dst_fd, file_count, buf_pos;
-//                    char buf[BUFF_SIZE];
-//                    char *src_path, *dst_path;
-//                    struct dirent *dir;
-//                   
-//                    // define source and destination path
-//                    if (redir == 1)
-//                    {
-//                        if (strcmp(args[1],">") == 0)
-//                        {
-//                            // no source target defines, pwd implied
-//                            src_path = ".";
-//                            dst_path = args[2];
-//                        }
-//                        else
-//                        {
-//                            // user specified different repo to ls
-//                            src_path = args[1];
-//                            dst_path = args[3];
-//                        }
-//                    }
-//                    else
-//                    {
-//                        // no redirection
-//                        dst_path = NULL;
-//
-//                        if (args[1] == NULL)
-//                        {
-//                            // ls command with no arguments 
-//                            src_path = ".";
-//                        }
-//                        else
-//                        {
-//                            // user specified different repo to ls
-//                            src_path = args[1];
-//                        }
-//                    }
-//                    
-//                    src_fd = open(src_path, O_RDONLY | O_DIRECTORY);
-//                    if (src_fd == -1) { handle_error("open()"); }
-//
-//                    file_count = syscall(SYS_getdents, src_fd, buf, BUFF_SIZE);
-//                    if (file_count == -1) { handle_error("getdents"); }
-//                    
-//                    if (redir == 1)
-//                    {
-//                        // output redirection towards another file
-//                        dst_fd = open(dst_path, dst_open_flags, dst_perms);
-//		        if (dst_fd == -1) { handle_error("open()"); }
-//                    }
-//                    else { dst_fd = STDOUT_FILENO; }
-//
-//                    // display the name of all the retrieved files
-//                    for (buf_pos = 0; buf_pos < file_count; buf_pos += dir->d_reclen)
-//                    {
-//                        dir = (struct dirent *)(buf + buf_pos);
-//                        dprintf(dst_fd,"%s\t\t",dir->d_name-1);
-//                    }
-//                    printf("\n");
-//                    
-//		    if (close(src_fd) == -1) { handle_error("close"); }
-//		    if (redir == 1)
-//                    {
-//                        if (close(dst_fd) == -1) { handle_error("close"); }
-//                    }
-//                    
-//                    handle_success(!DISPLAY_MSG);
-//             }
-//                else if (strcmp(args[0],"cat") == 0)
-//                {
-//                    int src_fd, dst_fd, read_bytes;
-//		    char buf[BUFF_SIZE];
-//                    
-//                    // open source and destination file descriptors
-//		    src_fd = open(args[1], O_RDONLY);
-//		    if (src_fd == -1) { handle_error("open()"); }
-//                    
-//                    if (redir == 1)
-//                    {
-//                        // output redirection towards another file
-//                        dst_fd = open(args[3], dst_open_flags, dst_perms);
-//		        if (dst_fd == -1) { handle_error("open()"); }
-//                    }
-//                    else { dst_fd = STDOUT_FILENO; }
-//
-//                    // transfer bytes from source to destination
-//		    while ((read_bytes = read(src_fd, buf, BUFF_SIZE)) > 0)
-//		    {
-//			if (write(dst_fd, buf, read_bytes) != read_bytes)
-//			{
-//			    handle_error("write()");
-//			}
-//		    }
-//		    if (read_bytes == -1) { handle_error("read()"); }
-//
-//                    // close file descriptors
-//		    if (close(src_fd) == -1) { handle_error("close"); }
-//                    if (redir == 1) 
-//                    {
-//		        if (close(dst_fd) == -1) { handle_error("close"); }
-//                    }
-//
-//                    handle_success(!DISPLAY_MSG);
-//                }
-//                else if (strcmp(args[0],"cp") == 0)
-//                {
-//                    int src_fd, dst_fd, read_bytes;
-//		    char buf[BUFF_SIZE];
-//                    
-//                    // open source and destination file descriptors
-//		    src_fd = open(args[1], O_RDONLY);
-//		    if (src_fd == -1) { handle_error("open()"); }
-//
-//		    dst_fd = open(args[2], dst_open_flags, dst_perms);
-//		    if (src_fd == -1) { handle_error("open()"); }
-//
-//                    // transfer bytes from source to destination
-//		    while ((read_bytes = read(src_fd, buf, BUFF_SIZE)) > 0)
-//		    {
-//			if (write(dst_fd, buf, read_bytes) != read_bytes)
-//			{
-//			    handle_error("write()");
-//			}
-//		    }
-//		    if (read_bytes == -1) { handle_error("read()"); }
-//
-//		    if (close(src_fd) == -1) { handle_error("close"); }
-//		    if (close(dst_fd) == -1) { handle_error("close"); }
-//
-//                    handle_success(!DISPLAY_MSG);
-//                }
-//                else 
-//                {
-//                    // non built-in cmds, pass directly to execvp
-//                    execvp(args[0],args);
-//               
-//                    // should never reach this point
-//                    _exit(EXIT_FAILURE);
-//                }
-//            }
-//        }
-//    }
 }
 
 
@@ -356,6 +195,27 @@ unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE])
 }
 
 // manager actions
+int create_shm(void)
+{
+    int fd_shm = shm_open(mem_name, open_flag, permissions);
+    if (fd_shm == -1) { return -1; }
+   
+    if (ftruncate(fd_shm, mem_size) == -1) { return -1; }
+
+    shared_manager = (RESERVATION *) mmap(NULL, mem_size, 
+                                          protection, visibility,
+                                          fd_shm,0);
+
+    if (shared_manager == MAP_FAILED) { return -1; }
+    
+    return 0;
+}
+
+int create_manager(void)
+{
+    return 1;
+}
+
 void init_manager(void)
 {
     unsigned int a = IDX_SECTION_A;
@@ -365,18 +225,19 @@ void init_manager(void)
     
     for (; a < TABLES_PER_SECTION; a++)
     {
-        R_manager[a].table_num  = a + a_offset;         
-        R_manager[a].status     = 0;
-        R_manager[a].client[0]  = '\0';            
+        shared_manager[a].table_num  = a + a_offset;         
+        shared_manager[a].status     = 0;
+        shared_manager[a].client[0]  = '\0';            
     }
     
     for (; b < 2*TABLES_PER_SECTION; b++)
     {
-        R_manager[b].table_num  = b + b_offset;         
-        R_manager[b].status     = 0;
-        R_manager[b].client[0]  = '\0';            
+        shared_manager[b].table_num  = b + b_offset;         
+        shared_manager[b].status     = 0;
+        shared_manager[b].client[0]  = '\0';            
     }
 }
+
 
 void print_manager(void)
 {
@@ -388,16 +249,16 @@ void print_manager(void)
     for (i=0; i < 2*TABLES_PER_SECTION; i++)
     {
         section = (i < IDX_SECTION_B) ? "A" : "B";
-        table_num = R_manager[i].table_num;         
+        table_num = shared_manager[i].table_num;         
         
         printf("Section: %s\t",section);
         printf("Table: %d\t",table_num);
         
-        status = R_manager[i].status;
+        status = shared_manager[i].status;
         if (status == 0) { printf("Status: Free\n"); }
         else
         {   
-            client = R_manager[i].client;            
+            client = shared_manager[i].client;            
             
             printf("Status: Reserved\t");
             printf("Client: %s\n",client);
@@ -405,15 +266,20 @@ void print_manager(void)
     }
 }
 
+int add_reserve(char *client, char *section, unsigned int table_num)
+{
+    return 0;
+}
+
 // if SIGINT caught, kill current process
 void handle_SIGINT(int signum)
 {
-    printf("\nCaptured signal: %d\n",signum);
-    handle_success();
+    printf("Captured signal: %d",signum);
+    handle_error("SIGINT");
 }
 
 // program exit handlers 
-void handle_success()
+void handle_success(void)
 {
     exit(EXIT_SUCCESS); 
 }
@@ -421,6 +287,16 @@ void handle_error(char *msg)
 { 
     perror(msg);
     exit(EXIT_FAILURE);
+}
+
+int deallocate_mem(void)
+{
+    if ((munmap(shared_manager, mem_size) == -1) || (shm_unlink(mem_name) == -1))
+    {
+        return -1;
+    }
+
+    return 0;
 }
 
 void print_welcome_banner(void)
