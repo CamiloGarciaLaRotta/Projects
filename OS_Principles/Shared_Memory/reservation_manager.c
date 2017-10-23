@@ -28,11 +28,11 @@
 //                  CONSTANTS                            //
 ///////////////////////////////////////////////////////////
 
-#define TABLES_PER_SECTION  10
-#define IDX_SECTION_A       0
-#define IDX_SECTION_B       10
-#define BUFF_SIZE           80           
-#define MAX_ARGS            4          
+#define TABLES_PER_SECTION  ((unsigned int)10)
+#define IDX_SECTION_A       ((unsigned int)0)
+#define IDX_SECTION_B       ((unsigned int)10)
+#define BUFF_SIZE           ((unsigned int)80)           
+#define MAX_ARGS            ((unsigned int)4)          
 #define ARG_SIZE            BUFF_SIZE / MAX_ARGS
 
 
@@ -54,7 +54,7 @@ typedef struct RESERVATION
 //                  FUNCTION DECLARATIONS                //
 ///////////////////////////////////////////////////////////
 
-// tokenize user's input command, returns number of tokens parsed
+// shell functions
 unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE]);
 
 // manager actions
@@ -62,7 +62,10 @@ int create_shm(void);
 int create_manager(void);
 void init_manager(void);
 void print_manager(void);
-int add_reserve(char *client, char *section, unsigned int table_num);
+int add_reserve(char *client, unsigned int section, unsigned int table_num);
+int get_min_free_idx(unsigned int section);
+int is_available(unsigned int section, unsigned int table_num);
+int validate_args(unsigned int section, unsigned int table_num);
 
 // signal handlers
 void handle_SIGINT(int signum);
@@ -94,10 +97,9 @@ const mode_t permissions = S_IRUSR | S_IWUSR | S_IRGRP;
 
 int main(void)
 {
-    int i;                      
+    unsigned int i;                      
     char args[MAX_ARGS][20];    
     
-    for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
     
     // configure reservation manager
     if (create_shm() == -1) { handle_error("create_shm()"); }
@@ -110,6 +112,8 @@ int main(void)
 
     while(1)
     {
+        for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
+        
         // tokenize input command
         int token_count = get_cmd(args); 
         if (token_count == 0) { continue; }
@@ -141,30 +145,38 @@ int main(void)
             }
             else if (strcmp(args[0], "reserve") == 0)
             {
-                unsigned int table_num;
                 
-                if (token_count == 3) { table_num = 0; }
-                else if (token_count == 4) { table_num = atoi(args[3]); }
-                else
+                // TODO TODO TODO handle no more than 4 args tokenized in get_cmd
+                if (token_count < 3) 
                 {
-                    printf("bad request");
-                }
+                    printf("Usage: reserve <client_name> "
+                           "<section> <table_number>(optional)\n"); }
+                else 
+                {
+                    // section is defined by its minimum idx
+                    unsigned int section = (strncmp(args[2], "A", 1) == 0) ? 
+                                                IDX_SECTION_A : IDX_SECTION_B;
 
-                if (add_reserve(args[1],args[2],table_num) == -1)
-                {
-                    printf("failed to add reservation"); 
-                }
-                else
-                {
-                    printf("GG"); 
+                    // a table_num 0 implies no preference from the user
+                    unsigned int table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
+                    
+                    if (table_num != 0 && validate_args(section, table_num) == -1) 
+                    {
+                        printf("Invalid section.table_number range\n");
+                    }
+                    else if (add_reserve(args[1],section,table_num) == -1)
+                    {
+                        printf("failed to reserve, table is already occupied\n"); 
+                    }
+                    else
+                    {
+                        printf("Succesfully reserved table\n"); 
+                    }
                 }
             }
             
             handle_success(); 
         }
-        
-        // clear arguments
-        for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
     }
 }
 
@@ -194,7 +206,7 @@ unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE])
     return token_count;
 }
 
-// manager actions
+// create shared memory and set global ptr to it
 int create_shm(void)
 {
     int fd_shm = shm_open(mem_name, open_flag, permissions);
@@ -211,11 +223,7 @@ int create_shm(void)
     return 0;
 }
 
-int create_manager(void)
-{
-    return 1;
-}
-
+// clear all reservations from shared_manager
 void init_manager(void)
 {
     unsigned int a = IDX_SECTION_A;
@@ -237,7 +245,6 @@ void init_manager(void)
         shared_manager[b].client[0]  = '\0';            
     }
 }
-
 
 void print_manager(void)
 {
@@ -266,9 +273,69 @@ void print_manager(void)
     }
 }
 
-int add_reserve(char *client, char *section, unsigned int table_num)
+// attempt to add reservation to shared_manager
+int add_reserve(char *client, unsigned int section, unsigned int table_num)
 {
+    int idx;
+
+    if (table_num == 0)
+    {
+        // we attempt to choose smallest available table in input section
+        idx = get_min_free_idx(section);
+    }
+    else
+    {
+        // we attempt to choose input table 
+        idx = is_available(section, table_num);
+    }
+    
+    if (idx == -1) { return -1; }
+
+    shared_manager[idx].status = 1;
+    strncpy(shared_manager[idx].client, client, strlen(client));
+
     return 0;
+}
+
+// if a table in the section is available return idx, if not return -1 
+int get_min_free_idx(unsigned int section)
+{
+    int i = section;
+    int end_of_section = section + TABLES_PER_SECTION;
+    
+    while (shared_manager[i].status == 1 && i < end_of_section) { i++; }
+
+    if (i == end_of_section) { return -1; }
+
+    return i;
+}
+
+// checks if section.table_num is available: if so return idx, if not return -1
+int is_available(unsigned int section, unsigned int table_num)
+{
+    unsigned int offset = (section == IDX_SECTION_A) ? 100 : 190;
+    unsigned int i = table_num - offset;
+    if (shared_manager[i].status == 1) { return -1; }
+
+    return i;
+    
+}
+
+// checks if pair section-table_num are valid
+int validate_args(unsigned int section, unsigned int table_num)
+{
+    // TODO TODO TODO DEBATE IF THIS FORMULA OR SIMPLER MULTIPLE RETURNS
+    // ALSO WTF HAPPENS IF INPUT -1? CUZ VARIABLE IS UNSIGED INT
+    if (table_num > 0 && table_num < 2 * TABLES_PER_SECTION)
+    {
+        if ((section == IDX_SECTION_A && table_num < TABLES_PER_SECTION) ||
+                (section == IDX_SECTION_B && table_num >= TABLES_PER_SECTION))
+        {
+            return 0;
+        }
+    }
+    
+    return -1;
 }
 
 // if SIGINT caught, kill current process
@@ -283,6 +350,7 @@ void handle_success(void)
 {
     exit(EXIT_SUCCESS); 
 }
+
 void handle_error(char *msg) 
 { 
     perror(msg);
