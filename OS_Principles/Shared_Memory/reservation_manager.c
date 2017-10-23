@@ -56,6 +56,7 @@ typedef struct RESERVATION
 
 // shell functions
 unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE]);
+void print_usage(void);
 
 // manager actions
 int create_shm(void);
@@ -121,11 +122,16 @@ int main(void)
         // implementation of built-in cmds that don't require forking
         if (strcmp(args[0], "exit") == 0)
         {
-            if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
-            
-            handle_success();
+            if (token_count == 1)
+            {
+                if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+                
+                handle_success();
+            }
+            else { print_usage(); }
         }
 
+        // implementation of built-in cmds that require forking
         pid_t child_pid = fork();
         if (child_pid == -1) { handle_error("fork()"); }
 
@@ -137,20 +143,26 @@ int main(void)
         else if (child_pid == 0)
         {
             if (strcmp(args[0], "init") == 0) { 
-                init_manager();
+                if (token_count == 1)
+                {
+                    // TODO MUTEX
+                    init_manager();
+                }
+                else { print_usage(); }
             } 
             else if (strcmp(args[0], "status") == 0)
-            { 
-                print_manager(); 
+            {
+                if (token_count == 1)
+                {
+                    // TODO MUTEX
+                    print_manager(); 
+                }
+                else { print_usage(); }
             }
             else if (strcmp(args[0], "reserve") == 0)
             {
-                
                 // TODO TODO TODO handle no more than 4 args tokenized in get_cmd
-                if (token_count < 3) 
-                {
-                    printf("Usage: reserve <client_name> "
-                           "<section> <table_number>(optional)\n"); }
+                if (token_count < 3) { print_usage(); }
                 else 
                 {
                     // section is defined by its minimum idx
@@ -158,19 +170,27 @@ int main(void)
                                                 IDX_SECTION_A : IDX_SECTION_B;
 
                     // a table_num 0 implies no preference from the user
-                    unsigned int table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
-                    
-                    if (table_num != 0 && validate_args(section, table_num) == -1) 
+                    int table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
+                    if (table_num < 0) 
                     {
-                        printf("Invalid section.table_number range\n");
+                        printf("Table number can't be negative\n");    
                     }
-                    else if (add_reserve(args[1],section,table_num) == -1)
+                    else 
                     {
-                        printf("failed to reserve, table is already occupied\n"); 
-                    }
-                    else
-                    {
-                        printf("Succesfully reserved table\n"); 
+                        unsigned int u_table_num = table_num;
+
+                        if (table_num != 0 && validate_args(section, u_table_num) == -1) 
+                        {
+                            printf("Invalid section.table_number range\n");
+                        }
+                        else if (add_reserve(args[1],section, u_table_num) == -1)
+                        {
+                            printf("failed to reserve, table is already occupied\n"); 
+                        }
+                        else
+                        {
+                            printf("Succesfully reserved table\n"); 
+                        }
                     }
                 }
             }
@@ -204,6 +224,14 @@ unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE])
     free(token);
     
     return token_count;
+}
+
+void print_usage(void)
+{ 
+    printf("Usage: init\n"); 
+    printf("Usage: status\n"); 
+    printf("Usage: exit\n"); 
+    printf("Usage: reserve <client_name> <section> <table_number>(optional)\n"); 
 }
 
 // create shared memory and set global ptr to it
@@ -315,6 +343,7 @@ int is_available(unsigned int section, unsigned int table_num)
 {
     unsigned int offset = (section == IDX_SECTION_A) ? 100 : 190;
     unsigned int i = table_num - offset;
+    
     if (shared_manager[i].status == 1) { return -1; }
 
     return i;
@@ -324,12 +353,13 @@ int is_available(unsigned int section, unsigned int table_num)
 // checks if pair section-table_num are valid
 int validate_args(unsigned int section, unsigned int table_num)
 {
-    // TODO TODO TODO DEBATE IF THIS FORMULA OR SIMPLER MULTIPLE RETURNS
-    // ALSO WTF HAPPENS IF INPUT -1? CUZ VARIABLE IS UNSIGED INT
-    if (table_num > 0 && table_num < 2 * TABLES_PER_SECTION)
+    unsigned int offset = (section == IDX_SECTION_A) ? 100 : 190;
+    unsigned int i = table_num - offset;
+
+    if (i > 0 && i < 2 * TABLES_PER_SECTION)
     {
-        if ((section == IDX_SECTION_A && table_num < TABLES_PER_SECTION) ||
-                (section == IDX_SECTION_B && table_num >= TABLES_PER_SECTION))
+        if ((section == IDX_SECTION_A && i < TABLES_PER_SECTION) ||
+                (section == IDX_SECTION_B && i >= TABLES_PER_SECTION))
         {
             return 0;
         }
@@ -346,10 +376,7 @@ void handle_SIGINT(int signum)
 }
 
 // program exit handlers 
-void handle_success(void)
-{
-    exit(EXIT_SUCCESS); 
-}
+void handle_success(void) { exit(EXIT_SUCCESS); }
 
 void handle_error(char *msg) 
 { 
