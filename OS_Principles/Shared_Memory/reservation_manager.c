@@ -55,7 +55,7 @@ typedef struct RESERVATION
 ///////////////////////////////////////////////////////////
 
 // shell functions
-unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE]);
+unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE]);
 void print_usage(void);
 void print_welcome_banner(void);
 
@@ -96,9 +96,9 @@ const mode_t permissions = S_IRUSR | S_IWUSR | S_IRGRP;
 
 int main(void)
 {
-    unsigned int i;                      
-    char args[MAX_ARGS][20];    
-    
+    char line[BUFF_SIZE];           // line to be parsed and tokenized
+    char args[MAX_ARGS][20];        // tokens parsed from line
+    unsigned int token_count, i;       
     
     // configure reservation manager
     if (create_shm() == -1) { handle_error("create_shm()"); }
@@ -111,11 +111,14 @@ int main(void)
 
     while(1)
     {
+        // clear cmd parsing variable
+        memset(&line[0], 0 , sizeof(line));
         for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
-        
+         
         // tokenize input command
-        int token_count = get_cmd(args); 
-        if (token_count == 0) { continue; }
+        printf(" > ");
+        if (fgets(line, BUFF_SIZE, stdin) == NULL) { continue; }
+        else { token_count = parse_line(line,args); } 
         
         // implementation of built-in cmds that don't require forking
         if (strcmp(args[0], "exit") == 0)
@@ -135,12 +138,13 @@ int main(void)
 
         if (child_pid > 0)
         {
-            int status;
-            waitpid(child_pid, &status, 0);
+            // TODO NO NEED TO WAIT FOR CHILD, AT THE END DELETE THIS
+           // int status;
+           // waitpid(child_pid, &status, 0);
         }
         else if (child_pid == 0)
         {
-            if (strcmp(args[0], "init") == 0) { 
+            if (strncmp(args[0], "init", strlen("init")) == 0) { 
                 if (token_count == 1)
                 {
                     // TODO MUTEX
@@ -148,7 +152,7 @@ int main(void)
                 }
                 else { print_usage(); }
             } 
-            else if (strcmp(args[0], "status") == 0)
+            else if (strncmp(args[0], "status", strlen("status")) == 0)
             {
                 if (token_count == 1)
                 {
@@ -157,7 +161,7 @@ int main(void)
                 }
                 else { print_usage(); }
             }
-            else if (strcmp(args[0], "reserve") == 0)
+            else if (strncmp(args[0], "reserve", strlen("reserve")) == 0)
             {
                 if (token_count < 3) { print_usage(); }
                 else 
@@ -170,7 +174,7 @@ int main(void)
                     else if (strncmp(args[2], "B", 1) == 0) { section = IDX_SECTION_B; }
                     else 
                     {
-                        printf("Invalid section. Must be A or B\n");
+                        printf("\nInvalid section. Must be A or B\n");
                         handle_success();
                     }
 
@@ -178,7 +182,7 @@ int main(void)
                     table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
                     if (table_num < 0) 
                     {
-                        printf("Table number can't be negative\n");    
+                        printf("\nTable number can't be negative\n");    
                         handle_success();
                     }
                      
@@ -186,20 +190,45 @@ int main(void)
 
                     if (table_num != 0 && validate_args(section, u_table_num) == -1) 
                     {
-                        printf("Invalid section.table_number range\n");
+                        printf("\nInvalid section.table_number range\n");
                     }
                     else if (add_reserve(args[1],section, u_table_num) == -1)
                     {
                         if (table_num == 0) 
                         { 
-                            printf("Failed to reserve, no empty table\n"); 
+                            printf("\nFailed to reserve, no empty table\n"); 
                         }
-                        else { printf("Failed to reserve, table is occupied\n"); }
+                        else { printf("\nFailed to reserve, table is occupied\n"); }
                     }
                     else
                     {
-                        printf("Succesfully reserved table\n"); 
+                        printf("\nSuccesfully reserved table\n"); 
                     }
+                }
+            }
+            else if (strncmp(args[0], "read", strlen("read")) == 0)
+            {
+                if (token_count != 2) { print_usage(); }
+                else
+                {
+                    FILE *fp;
+                    
+                    if ((fp = fopen(args[1], "r")) == NULL) { handle_error("fopen()"); }
+
+                    // clear child's cmd parsing variable to parse the file
+                    memset(&line[0], 0 , sizeof(line));
+                    for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
+                   
+                    while (!feof(fp))
+                    {
+                        if (fgets(line, BUFF_SIZE, fp) != NULL)
+                        {
+                            // NOTE TODO fgets does keep the \n at the end of each line
+                            token_count = parse_line(line, args); 
+                        }
+                    }
+
+                    fclose(fp);
                 }
             }
             else { print_usage(); }
@@ -210,26 +239,20 @@ int main(void)
 }
 
 
-// tokenize user's input command, return number of tokens parsed
-unsigned int get_cmd(char args[MAX_ARGS][ARG_SIZE])
+// tokenize input line, return number of tokens parsed
+unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE])
 {
-    printf(" > ");
-
     unsigned int token_count = 0;
-    char buff[BUFF_SIZE];       // stdin buff
-    char *token;                // strtok ptr
+    char *token;
     char *whitespace = " \t\n\f\r\v";
 
-    if (fgets(buff, BUFF_SIZE, stdin) != NULL)
+    token = strtok(line, whitespace);
+    while (token != NULL && token_count < MAX_ARGS)
     {
-        token = strtok(buff, whitespace);
-        while (token != NULL && token_count < MAX_ARGS)
-        {
-            strncpy(args[token_count++], token, strlen(token)+1);
-            token = strtok(NULL, whitespace);
-        }
+        strncpy(args[token_count++], token, strlen(token)+1);
+        token = strtok(NULL, whitespace);
     }
-    
+
     return token_count;
 }
 
@@ -276,7 +299,7 @@ void init_manager(void)
 
 void print_manager(void)
 {
-    printf("Reservation Manager\n");
+    printf("\nReservation Manager\n");
     printf("-------------------\n");
     
     char *section, *client;
@@ -371,7 +394,7 @@ int validate_args(unsigned int section, unsigned int table_num)
 // if SIGINT caught, kill current process
 void handle_SIGINT(int signum)
 {
-    printf("Captured signal: %d",signum);
+    printf("\nCaptured signal: %d\n",signum);
     if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
 
     handle_success();
@@ -397,10 +420,12 @@ int deallocate_mem(void)
 
 void print_usage(void)
 { 
+    printf("\n"); 
     printf("Usage: init\n"); 
     printf("Usage: status\n"); 
     printf("Usage: exit\n"); 
     printf("Usage: reserve <client_name> <section> <table_number>(optional)\n"); 
+    printf("Usage: read <file_name>\n"); 
 }
 
 void print_welcome_banner(void)
