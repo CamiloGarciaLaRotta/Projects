@@ -6,7 +6,7 @@ run:
 	./a.out
 
 compile: reservation_manager.c
-	gcc $(CFLAGS) reservation_manager.c -lrt
+	gcc $(CFLAGS) reservation_manager.c -lrt -lpthread
 
 clean:
 	rm a.out

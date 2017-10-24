@@ -22,6 +22,7 @@
 #include <sys/mman.h>
 #include <sys/wait.h>
 #include <sys/types.h>
+#include <semaphore.h>
 
 
 ///////////////////////////////////////////////////////////
@@ -77,6 +78,7 @@ void handle_SIGINT(int signum);
 void handle_success(void);
 void handle_error(char *msg);
 int deallocate_mem(void);
+int deallocate_sem(void);
 
 
 ///////////////////////////////////////////////////////////
@@ -84,16 +86,19 @@ int deallocate_mem(void);
 ///////////////////////////////////////////////////////////
 
 RESERVATION *shared_manager;
+sem_t *sem;
 
 // shared memory params
-const char* mem_name = "/cgarci26";
+const char* mem_name = "/cgarci26_mem";
+const char* sem_name = "/cgarci26_sem";
 const size_t mem_size = sizeof(2 * TABLES_PER_SECTION * sizeof(RESERVATION));
 
 // shared memory flags
-const int open_flag = O_CREAT | O_RDWR;
+const int mem_create = O_CREAT | O_RDWR;
+const int sem_create = O_CREAT;
 const int protection = PROT_READ | PROT_WRITE;
 const int visibility = MAP_ANONYMOUS | MAP_SHARED;
-const mode_t permissions = S_IRUSR | S_IWUSR | S_IRGRP;
+const mode_t permissions = S_IRUSR | S_IWUSR;
 
 int main(void)
 {
@@ -104,6 +109,9 @@ int main(void)
     // configure reservation manager
     if (create_shm() == -1) { handle_error("create_shm()"); }
     init_manager();
+
+    // configure mutual exclusion
+    sem = sem_open(sem_name, sem_create, permissions, 1);
     
     // attach signal handlers
     if (signal(SIGINT, handle_SIGINT) == SIG_ERR) { handle_error("SIGINT handler"); }
@@ -128,6 +136,7 @@ int main(void)
             if (token_count == 1)
             {
                 if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+                if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
                 
                 handle_success();
             }
@@ -138,13 +147,7 @@ int main(void)
         pid_t child_pid = fork();
         if (child_pid == -1) { handle_error("fork()"); }
 
-        if (child_pid > 0)
-        {
-            // TODO NO NEED TO WAIT FOR CHILD, AT THE END DELETE THIS
-           int status;
-           waitpid(child_pid, &status, 0);
-        }
-        else 
+        if (child_pid == 0)
         {
             if (exec_line(token_count, args) == -1) { print_usage(); }
 
@@ -171,17 +174,17 @@ unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE])
     return token_count;
 }
 
-// execute tokenized command, 
-// return -1 if command has bad syntax, 
-// 2 if recursive read, 0 else
+// execute tokenized command, -1 if command has bad syntax, 0 else
 int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
 {
     if (strncmp(args[0], "init", strlen("init")) == 0) 
     { 
         if (token_count == 1)
         {
-            // TODO MUTEX
+            if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
             init_manager();
+            if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
+            
             printf("Succesfully cleared reservations.\n");
         }
         else { return -1; }
@@ -191,8 +194,9 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
     {
         if (token_count == 1)
         {
-            // TODO MUTEX
+            if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
             print_manager(); 
+            if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
         }
         else { return -1; }
     }
@@ -229,14 +233,26 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             {
                 printf("Invalid section/table_number range.\n");
             }
-            else if (add_reserve(args[1],section, u_table_num) == -1)
-            {
-                if (table_num == 0) { printf("Failed to reserve, no empty table.\n"); }
-                else { printf("Failed to reserve, table is occupied.\n"); }
-            }
             else
             {
-                printf("Succesfully reserved table.\n"); 
+                int result;
+
+                if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
+                result = add_reserve(args[1],section, u_table_num);
+                if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
+                
+                if (result == -1) 
+                {
+                    if (u_table_num == 0) 
+                    {
+                        printf("Failed to reserve, no empty table.\n"); 
+                    }
+                    else { printf("Failed to reserve, table is occupied.\n"); }
+                }
+                else
+                {
+                    printf("Succesfully reserved table.\n"); 
+                }
             }
         }
     }
@@ -257,7 +273,6 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
            
             while (fgets(line, BUFF_SIZE, fp) != NULL)
             {
-                // NOTE TODO fgets does keep the \n at the end of each line
                 token_count = parse_line(line, args); 
 
                 memset(&line[0], 0 , sizeof(line));
@@ -272,12 +287,10 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
                     {
                         int status;
                         waitpid(pid, &status, 0);
-                        return 2;
+                        return 0;
                     }
                     else
                     {
-                        
-
                         if (exec_line(token_count,args) == -1) { return -1; }
                     }
                 }
@@ -294,7 +307,7 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
 // create shared memory and set global ptr to it
 int create_shm(void)
 {
-    int fd_shm = shm_open(mem_name, open_flag, permissions);
+    int fd_shm = shm_open(mem_name, mem_create, permissions);
     if (fd_shm == -1) { return -1; }
    
     if (ftruncate(fd_shm, mem_size) == -1) { return -1; }
@@ -430,7 +443,9 @@ int validate_args(unsigned int section, unsigned int table_num)
 void handle_SIGINT(int signum)
 {
     printf("\nCaptured signal: %d\n",signum);
+
     if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+    if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
 
     handle_success();
 }
@@ -449,6 +464,13 @@ int deallocate_mem(void)
     {
         return -1;
     }
+
+    return 0;
+}
+
+int deallocate_sem(void)
+{
+    if ((sem_close(sem) == -1) || (sem_unlink(sem_name) == -1)) { return -1; }
 
     return 0;
 }
@@ -475,5 +497,4 @@ void print_welcome_banner(void)
     printf("\t    -----------------------\n");
     printf("\n\n");
 }
-
 
