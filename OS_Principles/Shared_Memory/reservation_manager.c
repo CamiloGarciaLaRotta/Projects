@@ -56,9 +56,7 @@ typedef struct RESERVATION
 
 // shell functions
 unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE]);
-int exec_line(unsigned int token_count, 
-              char args[MAX_ARGS][ARG_SIZE], 
-              char result[BUFF_SIZE]);
+int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE]);
 void print_usage(void);
 void print_welcome_banner(void);
 
@@ -148,14 +146,7 @@ int main(void)
         }
         else 
         {
-            int status;
-            char result[BUFF_SIZE];
-            memset(&result[0], 0, sizeof(result));
-            
-            status = exec_line(token_count, args, result);
-                
-            if (status == -1) { print_usage(); }
-            else if (status == 0) { printf("%s\n",result); }
+            if (exec_line(token_count, args) == -1) { print_usage(); }
 
             handle_success(); 
         }
@@ -183,20 +174,15 @@ unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE])
 // execute tokenized command, 
 // return -1 if command has bad syntax, 
 // 2 if recursive read, 0 else
-int exec_line(unsigned int token_count, 
-              char args[MAX_ARGS][ARG_SIZE], 
-              char result[BUFF_SIZE])
+int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
 {
-    char *res = malloc(BUFF_SIZE * sizeof(char));
-    if (res == NULL) { handle_error("malloc()"); }
-
     if (strncmp(args[0], "init", strlen("init")) == 0) 
     { 
         if (token_count == 1)
         {
             // TODO MUTEX
             init_manager();
-            res = "Succesfully cleared reservations.";
+            printf("Succesfully cleared reservations.\n");
         }
         else { return -1; }
 
@@ -207,7 +193,6 @@ int exec_line(unsigned int token_count,
         {
             // TODO MUTEX
             print_manager(); 
-            res = "";
         }
         else { return -1; }
     }
@@ -224,8 +209,7 @@ int exec_line(unsigned int token_count,
             else if (strncmp(args[2], "B", 1) == 0) { section = IDX_SECTION_B; }
             else 
             {
-                res = "Invalid section. Must be A or B.";
-                strncpy(result, res, strlen(res));
+                printf("Invalid section. Must be A or B.\n");
 
                 return 0;
             }
@@ -234,8 +218,7 @@ int exec_line(unsigned int token_count,
             table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
             if (table_num < 0) 
             {
-                res = "Table number can't be negative.";    
-                strncpy(result, res, strlen(res));
+                printf("Table number can't be negative.\n");    
 
                 return 0;
             }
@@ -244,16 +227,16 @@ int exec_line(unsigned int token_count,
 
             if (table_num != 0 && validate_args(section, u_table_num) == -1) 
             {
-                res = "Invalid section/table_number range.";
+                printf("Invalid section/table_number range.\n");
             }
             else if (add_reserve(args[1],section, u_table_num) == -1)
             {
-                if (table_num == 0) { res = "Failed to reserve, no empty table."; }
-                else { res = "Failed to reserve, table is occupied."; }
+                if (table_num == 0) { printf("Failed to reserve, no empty table.\n"); }
+                else { printf("Failed to reserve, table is occupied.\n"); }
             }
             else
             {
-                res = "Succesfully reserved table."; 
+                printf("Succesfully reserved table.\n"); 
             }
         }
     }
@@ -293,9 +276,9 @@ int exec_line(unsigned int token_count,
                     }
                     else
                     {
-                        //char result[BUFF_SIZE];
+                        
 
-                        if (exec_line(token_count,args,result) == -1) { return -1; }
+                        if (exec_line(token_count,args) == -1) { return -1; }
                     }
                 }
             }
@@ -304,11 +287,6 @@ int exec_line(unsigned int token_count,
         }
     }
     else { return -1; }
-
-    strncpy(result, res, strlen(res));
-
-    // TODO MEM LEAK HERE
-    //free(res);
 
     return 0;
 }
