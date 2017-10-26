@@ -20,10 +20,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-#include <sys/wait.h>
-#include <sys/types.h>
 #include <semaphore.h>
-
 
 ///////////////////////////////////////////////////////////
 //                  CONSTANTS                            //
@@ -35,20 +32,6 @@
 #define BUFF_SIZE           ((unsigned int)80)           
 #define MAX_ARGS            ((unsigned int)4)          
 #define ARG_SIZE            BUFF_SIZE / MAX_ARGS
-
-
-///////////////////////////////////////////////////////////
-//                  DATA STRUCTURES                      //
-///////////////////////////////////////////////////////////
-
-// linked list for job handling
-typedef struct RESERVATION 
-{
-    unsigned int    table_num;         
-    unsigned int    status;             // 0 free, 1 reserved
-    char            client[BUFF_SIZE];            
-
-} RESERVATION;
 
 
 ///////////////////////////////////////////////////////////
@@ -71,14 +54,26 @@ int get_min_free_idx(unsigned int section);
 int is_available(unsigned int section, unsigned int table_num);
 int validate_args(unsigned int section, unsigned int table_num);
 
-// signal handlers
-void handle_SIGINT(int signum);
-
 // exit program handlers
 void handle_success(void);
 void handle_error(char *msg);
+void handle_SIGINT(int signum);
 int deallocate_mem(void);
 int deallocate_sem(void);
+
+
+///////////////////////////////////////////////////////////
+//                  DATA STRUCTURES                      //
+///////////////////////////////////////////////////////////
+
+// linked list for job handling
+typedef struct RESERVATION 
+{
+    unsigned int    table_num;         
+    unsigned int    status;             // 0 free, 1 reserved
+    char            client[BUFF_SIZE];            
+
+} RESERVATION;
 
 
 ///////////////////////////////////////////////////////////
@@ -94,21 +89,31 @@ const char* sem_name = "/cgarci26_sem";
 const size_t mem_size = sizeof(2 * TABLES_PER_SECTION * sizeof(RESERVATION));
 
 // shared memory flags
-const int mem_create = O_CREAT | O_RDWR;
+const int mem_create = O_RDWR | O_CREAT;
 const int sem_create = O_CREAT;
 const int protection = PROT_READ | PROT_WRITE;
-const int visibility = MAP_ANONYMOUS | MAP_SHARED;
+const int visibility = MAP_SHARED;
 const mode_t permissions = S_IRUSR | S_IWUSR;
 
-int main(void)
+
+///////////////////////////////////////////////////////////
+//                          MAIN                         //
+///////////////////////////////////////////////////////////
+
+int main(int argc, char *argv[])
 {
+    if (argc > 2) 
+    {
+        print_usage();
+        handle_success();
+    }
+
     char line[BUFF_SIZE];           // line to be parsed and tokenized
     char args[MAX_ARGS][20];        // tokens parsed from line
     unsigned int token_count, i;       
     
     // configure reservation manager
     if (create_shm() == -1) { handle_error("create_shm()"); }
-    init_manager();
 
     // configure mutual exclusion
     sem = sem_open(sem_name, sem_create, permissions, 1);
@@ -117,41 +122,48 @@ int main(void)
     if (signal(SIGINT, handle_SIGINT) == SIG_ERR) { handle_error("SIGINT handler"); }
 
     print_welcome_banner();
-
-    while(1)
+   
+    if (argc == 2)
     {
-        // clear cmd parsing variables
-        memset(&line[0], 0 , sizeof(line));
-        for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
-         
-        // tokenize input command
-        printf(" > ");
-        fgets(line, BUFF_SIZE, stdin);
-        if (line == NULL || strlen(line) == 1) { continue; }
-        else { token_count = parse_line(line,args); } 
+        // file given as CL input, execute every line
+
+        FILE *fp;
         
-        // implementation of built-in cmds that don't require forking
-        if (strcmp(args[0], "exit") == 0)
+        if ((fp = fopen(argv[1], "r")) == NULL) { handle_error("fopen()"); }
+
+        while (fgets(line, BUFF_SIZE, fp) != NULL)
         {
-            if (token_count == 1)
-            {
-                if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
-                if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
-                
-                handle_success();
-            }
-            else { print_usage(); }
+            token_count = parse_line(line, args); 
+            
+            if (token_count == 0) { continue; }
+            
+            if (exec_line(token_count,args) == -1) { return -1; }
+            
+            // clear cmd parsing variables
+            memset(&line[0], 0 , sizeof(line));
+            for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
         }
 
-        // implementation of built-in cmds that require forking
-        pid_t child_pid = fork();
-        if (child_pid == -1) { handle_error("fork()"); }
-
-        if (child_pid == 0)
+        fclose(fp);
+    }
+    else
+    {
+        // no CL argument given, execute shell 
+        
+        while(1)
         {
-            if (exec_line(token_count, args) == -1) { print_usage(); }
+            // clear cmd parsing variables
+            memset(&line[0], 0 , sizeof(line));
+            for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
+             
+            printf(" > ");
 
-            handle_success(); 
+            fgets(line, BUFF_SIZE, stdin);
+        
+            if (line == NULL || strlen(line) == 1) { continue; }
+            else { token_count = parse_line(line,args); } 
+            
+            if (exec_line(token_count, args) == -1) { print_usage(); }
         }
     }
 }
@@ -177,7 +189,21 @@ unsigned int parse_line(char line[BUFF_SIZE], char args[MAX_ARGS][ARG_SIZE])
 // execute tokenized command, -1 if command has bad syntax, 0 else
 int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
 {
-    if (strncmp(args[0], "init", strlen("init")) == 0) 
+    sleep(1);
+    if (strcmp(args[0], "exit") == 0)
+    {
+        if (token_count == 1)
+        {
+            // TODO TODO TODO NOT DELTE MEMORY JUST UNLINK
+            if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+            // TODO TODO TODO NOT DELTE SEMAPHORE JUST UNLINK
+            if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
+            
+            handle_success();
+        }
+        else { print_usage(); }
+    }
+    else if (strncmp(args[0], "init", strlen("init")) == 0) 
     { 
         if (token_count == 1)
         {
@@ -209,8 +235,8 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             unsigned int section, u_table_num;
 
             // section is defined by its minimum idx
-            if (strncmp(args[2], "A", 1) == 0) { section = IDX_SECTION_A; }
-            else if (strncmp(args[2], "B", 1) == 0) { section = IDX_SECTION_B; }
+            if (strncmp(args[2], "A", strlen(args[2])) == 0) { section = IDX_SECTION_A; }
+            else if (strncmp(args[2], "B", strlen(args[2])) == 0) { section = IDX_SECTION_B; }
             else 
             {
                 printf("Invalid section. Must be A or B.\n");
@@ -219,7 +245,7 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             }
 
             // a table_num 0 implies no preference from the user
-            table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
+            table_num = (args[2] == '\0') ? 0 : atoi(args[2]);
             if (table_num < 0) 
             {
                 printf("Table number can't be negative.\n");    
@@ -256,49 +282,6 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             }
         }
     }
-    else if (strncmp(args[0], "read", strlen("read")) == 0)
-    {
-        if (token_count != 2) { return -1; }
-        else
-        {
-            FILE *fp;
-            char line[BUFF_SIZE];
-            unsigned int i;
-            
-            if ((fp = fopen(args[1], "r")) == NULL) { handle_error("fopen()"); }
-
-            // clear child's cmd parsing variable to parse the file
-            memset(&line[0], 0 , sizeof(line));
-            for (i = 0; i < MAX_ARGS; i++) { args[i][0] = '\0'; }
-           
-            while (fgets(line, BUFF_SIZE, fp) != NULL)
-            {
-                token_count = parse_line(line, args); 
-
-                memset(&line[0], 0 , sizeof(line));
-                
-                if (token_count == 0) { continue; }
-                else
-                {
-                    pid_t pid = fork();
-                    if (pid == -1) { handle_error("fork()"); }
-                    
-                    if (pid > 0) 
-                    {
-                        int status;
-                        waitpid(pid, &status, 0);
-                        return 0;
-                    }
-                    else
-                    {
-                        if (exec_line(token_count,args) == -1) { return -1; }
-                    }
-                }
-            }
-
-            fclose(fp);
-        }
-    }
     else { return -1; }
 
     return 0;
@@ -307,17 +290,33 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
 // create shared memory and set global ptr to it
 int create_shm(void)
 {
-    int fd_shm = shm_open(mem_name, mem_create, permissions);
-    if (fd_shm == -1) { return -1; }
-   
-    if (ftruncate(fd_shm, mem_size) == -1) { return -1; }
+    int new_mem = -1;
+
+    int fd_shm = shm_open(mem_name, O_CREAT | O_EXCL | O_RDWR, permissions);
+
+    if (errno == EEXIST)
+    {
+        // memory exists already
+        fd_shm = shm_open(mem_name, O_RDWR, permissions);
+    }
+    else
+    {
+        // memory hasnt been created
+        new_mem = 0;
+        fd_shm = shm_open(mem_name, O_CREAT | O_RDWR, permissions);
+        
+        if (ftruncate(fd_shm, mem_size) == -1) { return -1; }
+    }
 
     shared_manager = (RESERVATION *) mmap(NULL, mem_size, 
                                           protection, visibility,
                                           fd_shm,0);
-    close(fd_shm);
-
+    
     if (shared_manager == MAP_FAILED) { return -1; }
+    
+    close(fd_shm);
+   
+    if (new_mem == 0) { init_manager(); }
     
     return 0;
 }
@@ -370,6 +369,8 @@ void print_manager(void)
             printf("Client: %s\n",client);
         }  
     }
+
+    printf("\n");
 }
 
 // attempt to add reservation to shared_manager
@@ -460,25 +461,29 @@ void handle_error(char *msg)
 
 int deallocate_mem(void)
 {
-    if ((munmap(shared_manager, mem_size) == -1) || (shm_unlink(mem_name) == -1))
-    {
-        return -1;
-    }
-
-    return 0;
+    return munmap(shared_manager, mem_size);
+//    if ((munmap(shared_manager, mem_size) == -1) || (shm_unlink(mem_name) == -1))
+//    {
+//        return -1;
+//    }
+//
+//    return 0;
 }
 
 int deallocate_sem(void)
 {
-    if ((sem_close(sem) == -1) || (sem_unlink(sem_name) == -1)) { return -1; }
-
-    return 0;
+    return sem_close(sem);
+//    if ((sem_close(sem) == -1) || (sem_unlink(sem_name) == -1)) { return -1; }
+//
+//    return 0;
 }
 
 void print_usage(void)
 { 
     printf("\nUsage\n"); 
-    printf("----------\n"); 
+    printf("--------------\n"); 
+    printf("RUN: ./a.out <input_file>(optional)\n"); 
+    printf("SHELL COMMANDS\n");
     printf("- init\n"); 
     printf("- exit\n"); 
     printf("- status\n"); 
