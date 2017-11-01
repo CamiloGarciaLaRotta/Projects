@@ -81,11 +81,14 @@ typedef struct RESERVATION
 ///////////////////////////////////////////////////////////
 
 RESERVATION *shared_manager;
-sem_t *sem;
+sem_t *mutex;       // semaphore to ensure mutex of shared memory
+sem_t *active;      // semaphore to signal when no process is currently 
+                    // using the sharem memory -> unlink
 
 // shared memory params
 const char* mem_name = "/cgarci26_mem";
-const char* sem_name = "/cgarci26_sem";
+const char* mutex_sem_name = "/cgarci26_mutex";
+const char* active_sem_name = "/cgarci26_active";
 const size_t mem_size = sizeof(2 * TABLES_PER_SECTION * sizeof(RESERVATION));
 
 // shared memory flags
@@ -116,7 +119,7 @@ int main(int argc, char *argv[])
     if (create_shm() == -1) { handle_error("create_shm()"); }
 
     // configure mutual exclusion
-    sem = sem_open(sem_name, sem_create, permissions, 1);
+    mutex = sem_open(mutex_sem_name, sem_create, permissions, 1);
     
     // attach signal handlers
     if (signal(SIGINT, handle_SIGINT) == SIG_ERR) { handle_error("SIGINT handler"); }
@@ -207,9 +210,9 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
     { 
         if (token_count == 1)
         {
-            if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
+            if (sem_wait(mutex) == -1) { handle_error("sem_wait()"); }
             init_manager();
-            if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
+            if (sem_post(mutex) == -1) { handle_error("sem_wait()"); }
             
             printf("Succesfully cleared reservations.\n");
         }
@@ -220,9 +223,9 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
     {
         if (token_count == 1)
         {
-            if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
+            if (sem_wait(mutex) == -1) { handle_error("sem_wait()"); }
             print_manager(); 
-            if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
+            if (sem_post(mutex) == -1) { handle_error("sem_wait()"); }
         }
         else { return -1; }
     }
@@ -263,9 +266,9 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             {
                 int result;
 
-                if (sem_wait(sem) == -1) { handle_error("sem_wait()"); }
+                if (sem_wait(mutex) == -1) { handle_error("sem_wait()"); }
                 result = add_reserve(args[1],section, u_table_num);
-                if (sem_post(sem) == -1) { handle_error("sem_wait()"); }
+                if (sem_post(mutex) == -1) { handle_error("sem_wait()"); }
                 
                 if (result == -1) 
                 {
@@ -472,8 +475,8 @@ int deallocate_mem(void)
 
 int deallocate_sem(void)
 {
-    return sem_close(sem);
-//    if ((sem_close(sem) == -1) || (sem_unlink(sem_name) == -1)) { return -1; }
+    return sem_close(mutex);
+//    if ((sem_close(mutex) == -1) || (sem_unlink(mutex_sem_name) == -1)) { return -1; }
 //
 //    return 0;
 }
