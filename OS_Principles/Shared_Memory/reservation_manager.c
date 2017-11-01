@@ -264,7 +264,7 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
             }
 
             // a table_num 0 implies no preference from the user
-            table_num = (args[2] == '\0') ? 0 : atoi(args[2]);
+            table_num = (args[3] == '\0') ? 0 : atoi(args[3]);
             if (table_num < 0) 
             {
                 printf("Table number can't be negative.\n");    
