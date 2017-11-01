@@ -115,12 +115,18 @@ int main(int argc, char *argv[])
     char args[MAX_ARGS][20];        // tokens parsed from line
     unsigned int token_count, i;       
     
+    // configure mutual exclusion and active semaphores
+    mutex = sem_open(mutex_sem_name, sem_create, permissions, 1);
+    active = sem_open(active_sem_name, sem_create, permissions, 0);
+    
+    // active acts as a counter of current # of procs using shared mem
+    // when active == 0  no other proc is using the shared mem
+    // so it can be unlinked completely as stated in assignment requirements
+    sem_post(active);
+
     // configure reservation manager
     if (create_shm() == -1) { handle_error("create_shm()"); }
 
-    // configure mutual exclusion
-    mutex = sem_open(mutex_sem_name, sem_create, permissions, 1);
-    
     // attach signal handlers
     if (signal(SIGINT, handle_SIGINT) == SIG_ERR) { handle_error("SIGINT handler"); }
 
@@ -148,6 +154,14 @@ int main(int argc, char *argv[])
         }
 
         fclose(fp);
+
+        sem_wait(active);
+
+        if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
+        if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
+        
+        handle_success();
+
     }
     else
     {
@@ -197,9 +211,11 @@ int exec_line(unsigned int token_count, char args[MAX_ARGS][ARG_SIZE])
     {
         if (token_count == 1)
         {
-            // TODO TODO TODO NOT DELTE MEMORY JUST UNLINK
+            
+            // notify through semaphore process won't be using shared mem anymore
+            sem_wait(active);
+
             if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
-            // TODO TODO TODO NOT DELTE SEMAPHORE JUST UNLINK
             if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
             
             handle_success();
@@ -448,6 +464,8 @@ void handle_SIGINT(int signum)
 {
     printf("\nCaptured signal: %d\n",signum);
 
+    sem_wait(active);
+
     if (deallocate_mem() == -1) { handle_error("deallocate_mem()"); }
     if (deallocate_sem() == -1) { handle_error("deallocate_sem()"); }
 
@@ -464,21 +482,38 @@ void handle_error(char *msg)
 
 int deallocate_mem(void)
 {
-    return munmap(shared_manager, mem_size);
-//    if ((munmap(shared_manager, mem_size) == -1) || (shm_unlink(mem_name) == -1))
-//    {
-//        return -1;
-//    }
-//
-//    return 0;
+
+    int i;
+
+    if (munmap(shared_manager, mem_size) == -1) { return -1; }
+
+    sem_getvalue(active, &i);
+    if (i == 0)
+    {
+        // no other process using shared memory
+        // requirements indicate we must unlink
+
+        return shm_unlink(mem_name);
+    }
+
+    return 0;
 }
 
 int deallocate_sem(void)
 {
-    return sem_close(mutex);
-//    if ((sem_close(mutex) == -1) || (sem_unlink(mutex_sem_name) == -1)) { return -1; }
-//
-//    return 0;
+    int i;
+
+    if (sem_close(mutex) == -1) { return -1; }
+        
+    sem_getvalue(active, &i);
+    if (i == 0)
+    {
+        // no other process using shared memory
+        // requirements indicate we must unlink
+        return sem_unlink(mutex_sem_name);
+    }
+
+    return 0;
 }
 
 void print_usage(void)
