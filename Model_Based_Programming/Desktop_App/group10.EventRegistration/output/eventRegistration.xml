@@ -1,0 +1,49 @@
+<manager id="1">
+  <registrations id="2">
+    <registration id="3">
+      <id>1</id>
+      <participant id="4">
+        <name>Juan</name>
+      </participant>
+      <event id="5">
+        <name>futbol</name>
+        <eventDate id="6">2017-01-25</eventDate>
+        <startTime id="7">12:47:03</startTime>
+        <endTime id="8">14:47:00</endTime>
+      </event>
+    </registration>
+    <registration id="9">
+      <id>2</id>
+      <participant id="10">
+        <name>Jose</name>
+      </participant>
+      <event reference="5"/>
+    </registration>
+    <registration id="11">
+      <id>3</id>
+      <participant id="12">
+        <name>Jairo</name>
+      </participant>
+      <event reference="5"/>
+    </registration>
+    <registration id="13">
+      <id>4</id>
+      <participant reference="12"/>
+      <event id="14">
+        <name>picina</name>
+        <eventDate id="15">2017-01-28</eventDate>
+        <startTime id="16">10:47:00</startTime>
+        <endTime id="17">12:47:00</endTime>
+      </event>
+    </registration>
+  </registrations>
+  <participants id="18">
+    <participant reference="4"/>
+    <participant reference="10"/>
+    <participant reference="12"/>
+  </participants>
+  <events id="19">
+    <event reference="5"/>
+    <event reference="14"/>
+  </events>
+</manager>
