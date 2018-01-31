@@ -1,0 +1,150 @@
+
+
+---- STEP SIZE: 0.01 ----
+Initial X = 0	Final (X,Y) = (1.74,0.40)	Iterations: 175
+Initial X = 1	Final (X,Y) = (1.74,0.40)	Iterations: 75
+Initial X = 2	Final (X,Y) = (1.74,0.40)	Iterations: 27
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 127
+Initial X = 4	Final (X,Y) = (3.96,0.33)	Iterations: 5
+Initial X = 5	Final (X,Y) = (5.32,0.31)	Iterations: 33
+Initial X = 6	Final (X,Y) = (6.39,0.30)	Iterations: 40
+Initial X = 7	Final (X,Y) = (7.31,0.29)	Iterations: 32
+Initial X = 8	Final (X,Y) = (8.12,0.28)	Iterations: 13
+Initial X = 9	Final (X,Y) = (8.86,0.27)	Iterations: 15
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 49.4
+
+
+---- STEP SIZE: 0.02 ----
+Initial X = 0	Final (X,Y) = (1.74,0.40)	Iterations: 88
+Initial X = 1	Final (X,Y) = (1.74,0.40)	Iterations: 38
+Initial X = 2	Final (X,Y) = (1.74,0.40)	Iterations: 14
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 64
+Initial X = 4	Final (X,Y) = (3.96,0.33)	Iterations: 3
+Initial X = 5	Final (X,Y) = (5.32,0.31)	Iterations: 17
+Initial X = 6	Final (X,Y) = (6.38,0.30)	Iterations: 20
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 16
+Initial X = 8	Final (X,Y) = (8.12,0.28)	Iterations: 7
+Initial X = 9	Final (X,Y) = (8.86,0.27)	Iterations: 8
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 25.1
+
+
+---- STEP SIZE: 0.03 ----
+Initial X = 0	Final (X,Y) = (1.74,0.40)	Iterations: 59
+Initial X = 1	Final (X,Y) = (1.75,0.40)	Iterations: 26
+Initial X = 2	Final (X,Y) = (1.73,0.40)	Iterations: 10
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 43
+Initial X = 4	Final (X,Y) = (3.97,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.33,0.31)	Iterations: 12
+Initial X = 6	Final (X,Y) = (6.39,0.30)	Iterations: 14
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 11
+Initial X = 8	Final (X,Y) = (8.12,0.28)	Iterations: 5
+Initial X = 9	Final (X,Y) = (8.85,0.27)	Iterations: 6
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 17.2
+
+
+---- STEP SIZE: 0.04 ----
+Initial X = 0	Final (X,Y) = (1.72,0.40)	Iterations: 44
+Initial X = 1	Final (X,Y) = (1.72,0.40)	Iterations: 19
+Initial X = 2	Final (X,Y) = (1.72,0.40)	Iterations: 8
+Initial X = 3	Final (X,Y) = (1.72,0.40)	Iterations: 33
+Initial X = 4	Final (X,Y) = (3.96,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.32,0.31)	Iterations: 9
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 11
+Initial X = 7	Final (X,Y) = (7.32,0.28)	Iterations: 9
+Initial X = 8	Final (X,Y) = (8.12,0.28)	Iterations: 4
+Initial X = 9	Final (X,Y) = (8.88,0.27)	Iterations: 4
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 13.1
+
+
+---- STEP SIZE: 0.05 ----
+Initial X = 0	Final (X,Y) = (1.75,0.40)	Iterations: 36
+Initial X = 1	Final (X,Y) = (1.75,0.40)	Iterations: 16
+Initial X = 2	Final (X,Y) = (1.75,0.40)	Iterations: 6
+Initial X = 3	Final (X,Y) = (1.75,0.40)	Iterations: 26
+Initial X = 4	Final (X,Y) = (3.95,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 7
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 9
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 7
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 3
+Initial X = 9	Final (X,Y) = (8.85,0.27)	Iterations: 4
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 10.6
+
+
+---- STEP SIZE: 0.06 ----
+Initial X = 0	Final (X,Y) = (1.74,0.40)	Iterations: 30
+Initial X = 1	Final (X,Y) = (1.72,0.40)	Iterations: 13
+Initial X = 2	Final (X,Y) = (1.76,0.40)	Iterations: 5
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 22
+Initial X = 4	Final (X,Y) = (3.94,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 6
+Initial X = 6	Final (X,Y) = (6.36,0.29)	Iterations: 7
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 6
+Initial X = 8	Final (X,Y) = (8.12,0.28)	Iterations: 3
+Initial X = 9	Final (X,Y) = (8.88,0.27)	Iterations: 3
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 8.9
+
+
+---- STEP SIZE: 0.07 ----
+Initial X = 0	Final (X,Y) = (1.75,0.40)	Iterations: 26
+Initial X = 1	Final (X,Y) = (1.77,0.40)	Iterations: 12
+Initial X = 2	Final (X,Y) = (1.72,0.40)	Iterations: 5
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 19
+Initial X = 4	Final (X,Y) = (3.93,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.35,0.31)	Iterations: 6
+Initial X = 6	Final (X,Y) = (6.42,0.29)	Iterations: 7
+Initial X = 7	Final (X,Y) = (7.28,0.28)	Iterations: 5
+Initial X = 8	Final (X,Y) = (8.14,0.27)	Iterations: 3
+Initial X = 9	Final (X,Y) = (8.86,0.27)	Iterations: 3
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 8.1
+
+
+---- STEP SIZE: 0.08 ----
+Initial X = 0	Final (X,Y) = (1.76,0.40)	Iterations: 23
+Initial X = 1	Final (X,Y) = (1.72,0.40)	Iterations: 10
+Initial X = 2	Final (X,Y) = (1.76,0.40)	Iterations: 4
+Initial X = 3	Final (X,Y) = (1.72,0.40)	Iterations: 17
+Initial X = 4	Final (X,Y) = (3.92,0.33)	Iterations: 2
+Initial X = 5	Final (X,Y) = (5.32,0.31)	Iterations: 5
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 6
+Initial X = 7	Final (X,Y) = (7.32,0.28)	Iterations: 5
+Initial X = 8	Final (X,Y) = (8.16,0.26)	Iterations: 3
+Initial X = 9	Final (X,Y) = (8.84,0.27)	Iterations: 3
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 7.2
+
+
+---- STEP SIZE: 0.09 ----
+Initial X = 0	Final (X,Y) = (1.71,0.40)	Iterations: 20
+Initial X = 1	Final (X,Y) = (1.72,0.40)	Iterations: 9
+Initial X = 2	Final (X,Y) = (1.73,0.40)	Iterations: 4
+Initial X = 3	Final (X,Y) = (1.74,0.40)	Iterations: 15
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 1
+Initial X = 5	Final (X,Y) = (5.36,0.30)	Iterations: 5
+Initial X = 6	Final (X,Y) = (6.36,0.29)	Iterations: 5
+Initial X = 7	Final (X,Y) = (7.27,0.28)	Iterations: 4
+Initial X = 8	Final (X,Y) = (8.09,0.27)	Iterations: 2
+Initial X = 9	Final (X,Y) = (8.82,0.25)	Iterations: 3
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 6.3
+
+
+---- STEP SIZE: 0.10 ----
+Initial X = 0	Final (X,Y) = (1.70,0.40)	Iterations: 18
+Initial X = 1	Final (X,Y) = (1.70,0.40)	Iterations: 8
+Initial X = 2	Final (X,Y) = (1.70,0.40)	Iterations: 4
+Initial X = 3	Final (X,Y) = (1.70,0.40)	Iterations: 14
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 1
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 4
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 5
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 4
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 2
+Initial X = 9	Final (X,Y) = (8.90,0.26)	Iterations: 2
+Initial X = 10	Final (X,Y) = (10.00,-0.07)	Iterations: 1
+Average iterations to converge: 5.7

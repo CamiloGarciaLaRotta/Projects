@@ -1,0 +1,390 @@
+
+
+---- T: 1000 ----
+
+
+---- Cooling Coeff: 0.10 ----
+Initial X = 0	Final (X,Y) = (0.50,0.06)	Iterations: 9
+Initial X = 1	Final (X,Y) = (0.80,0.14)	Iterations: 16
+Initial X = 2	Final (X,Y) = (1.70,0.40)	Iterations: 11
+Initial X = 3	Final (X,Y) = (3.40,-0.17)	Iterations: 12
+Initial X = 4	Final (X,Y) = (3.80,0.27)	Iterations: 16
+Initial X = 5	Final (X,Y) = (5.10,0.13)	Iterations: 13
+Initial X = 6	Final (X,Y) = (6.30,0.25)	Iterations: 11
+Initial X = 7	Final (X,Y) = (6.80,-0.26)	Iterations: 14
+Initial X = 8	Final (X,Y) = (8.70,0.04)	Iterations: 15
+Initial X = 9	Final (X,Y) = (8.70,0.04)	Iterations: 15
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 13
+Average iterations to converge: 13.2
+
+
+---- Cooling Coeff: 0.20 ----
+Initial X = 0	Final (X,Y) = (0.30,0.02)	Iterations: 17
+Initial X = 1	Final (X,Y) = (1.00,0.21)	Iterations: 20
+Initial X = 2	Final (X,Y) = (2.00,0.35)	Iterations: 20
+Initial X = 3	Final (X,Y) = (2.80,-0.25)	Iterations: 18
+Initial X = 4	Final (X,Y) = (3.90,0.33)	Iterations: 21
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 17
+Initial X = 6	Final (X,Y) = (5.60,0.01)	Iterations: 18
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 17
+Initial X = 8	Final (X,Y) = (8.00,0.15)	Iterations: 20
+Initial X = 9	Final (X,Y) = (9.50,0.24)	Iterations: 19
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 20
+Average iterations to converge: 18.8
+
+
+---- Cooling Coeff: 0.30 ----
+Initial X = 0	Final (X,Y) = (0.30,0.02)	Iterations: 23
+Initial X = 1	Final (X,Y) = (0.70,0.11)	Iterations: 29
+Initial X = 2	Final (X,Y) = (2.30,0.18)	Iterations: 29
+Initial X = 3	Final (X,Y) = (2.40,0.10)	Iterations: 20
+Initial X = 4	Final (X,Y) = (4.10,0.28)	Iterations: 27
+Initial X = 5	Final (X,Y) = (4.50,-0.21)	Iterations: 27
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 22
+Initial X = 7	Final (X,Y) = (7.40,0.22)	Iterations: 24
+Initial X = 8	Final (X,Y) = (7.10,0.02)	Iterations: 27
+Initial X = 9	Final (X,Y) = (9.50,0.24)	Iterations: 25
+Initial X = 10	Final (X,Y) = (9.60,0.23)	Iterations: 24
+Average iterations to converge: 25.2
+
+
+---- Cooling Coeff: 0.40 ----
+Initial X = 0	Final (X,Y) = (0.70,0.11)	Iterations: 25
+Initial X = 1	Final (X,Y) = (1.00,0.21)	Iterations: 32
+Initial X = 2	Final (X,Y) = (0.60,0.08)	Iterations: 40
+Initial X = 3	Final (X,Y) = (3.00,-0.35)	Iterations: 32
+Initial X = 4	Final (X,Y) = (4.10,0.28)	Iterations: 33
+Initial X = 5	Final (X,Y) = (5.60,0.01)	Iterations: 32
+Initial X = 6	Final (X,Y) = (5.70,-0.16)	Iterations: 31
+Initial X = 7	Final (X,Y) = (7.20,0.20)	Iterations: 30
+Initial X = 8	Final (X,Y) = (8.30,0.03)	Iterations: 33
+Initial X = 9	Final (X,Y) = (9.70,0.02)	Iterations: 33
+Initial X = 10	Final (X,Y) = (9.30,-0.18)	Iterations: 31
+Average iterations to converge: 32.0
+
+
+---- Cooling Coeff: 0.50 ----
+Initial X = 0	Final (X,Y) = (0.80,0.14)	Iterations: 34
+Initial X = 1	Final (X,Y) = (1.30,0.31)	Iterations: 39
+Initial X = 2	Final (X,Y) = (3.00,-0.35)	Iterations: 52
+Initial X = 3	Final (X,Y) = (3.30,-0.26)	Iterations: 41
+Initial X = 4	Final (X,Y) = (4.50,-0.21)	Iterations: 47
+Initial X = 5	Final (X,Y) = (3.00,-0.35)	Iterations: 46
+Initial X = 6	Final (X,Y) = (6.50,0.22)	Iterations: 39
+Initial X = 7	Final (X,Y) = (7.40,0.22)	Iterations: 40
+Initial X = 8	Final (X,Y) = (7.30,0.29)	Iterations: 41
+Initial X = 9	Final (X,Y) = (8.90,0.26)	Iterations: 41
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 42
+Average iterations to converge: 42.0
+
+
+---- T: 2000 ----
+
+
+---- Cooling Coeff: 0.10 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 13
+Initial X = 1	Final (X,Y) = (0.60,0.08)	Iterations: 18
+Initial X = 2	Final (X,Y) = (2.10,0.31)	Iterations: 15
+Initial X = 3	Final (X,Y) = (2.90,-0.31)	Iterations: 13
+Initial X = 4	Final (X,Y) = (4.90,-0.17)	Iterations: 19
+Initial X = 5	Final (X,Y) = (5.10,0.13)	Iterations: 13
+Initial X = 6	Final (X,Y) = (6.00,-0.23)	Iterations: 14
+Initial X = 7	Final (X,Y) = (6.40,0.30)	Iterations: 10
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 13
+Initial X = 9	Final (X,Y) = (9.50,0.24)	Iterations: 13
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 13
+Average iterations to converge: 14.0
+
+
+---- Cooling Coeff: 0.20 ----
+Initial X = 0	Final (X,Y) = (0.50,0.06)	Iterations: 15
+Initial X = 1	Final (X,Y) = (1.10,0.24)	Iterations: 19
+Initial X = 2	Final (X,Y) = (1.40,0.34)	Iterations: 20
+Initial X = 3	Final (X,Y) = (2.80,-0.25)	Iterations: 18
+Initial X = 4	Final (X,Y) = (3.80,0.27)	Iterations: 22
+Initial X = 5	Final (X,Y) = (6.20,0.11)	Iterations: 20
+Initial X = 6	Final (X,Y) = (6.30,0.25)	Iterations: 17
+Initial X = 7	Final (X,Y) = (6.50,0.22)	Iterations: 17
+Initial X = 8	Final (X,Y) = (7.40,0.22)	Iterations: 20
+Initial X = 9	Final (X,Y) = (9.50,0.24)	Iterations: 19
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 20
+Average iterations to converge: 18.8
+
+
+---- Cooling Coeff: 0.30 ----
+Initial X = 0	Final (X,Y) = (0.30,0.02)	Iterations: 23
+Initial X = 1	Final (X,Y) = (0.80,0.14)	Iterations: 28
+Initial X = 2	Final (X,Y) = (1.60,0.39)	Iterations: 24
+Initial X = 3	Final (X,Y) = (3.60,0.07)	Iterations: 22
+Initial X = 4	Final (X,Y) = (4.50,-0.21)	Iterations: 31
+Initial X = 5	Final (X,Y) = (5.20,0.25)	Iterations: 24
+Initial X = 6	Final (X,Y) = (6.20,0.11)	Iterations: 24
+Initial X = 7	Final (X,Y) = (5.60,0.01)	Iterations: 24
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 25
+Initial X = 9	Final (X,Y) = (10.00,-0.07)	Iterations: 28
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 25
+Average iterations to converge: 25.3
+
+
+---- Cooling Coeff: 0.40 ----
+Initial X = 0	Final (X,Y) = (1.00,0.21)	Iterations: 24
+Initial X = 1	Final (X,Y) = (1.50,0.37)	Iterations: 29
+Initial X = 2	Final (X,Y) = (1.90,0.38)	Iterations: 33
+Initial X = 3	Final (X,Y) = (3.00,-0.35)	Iterations: 34
+Initial X = 4	Final (X,Y) = (5.10,0.13)	Iterations: 37
+Initial X = 5	Final (X,Y) = (4.00,0.33)	Iterations: 30
+Initial X = 6	Final (X,Y) = (5.80,-0.27)	Iterations: 34
+Initial X = 7	Final (X,Y) = (8.30,0.03)	Iterations: 33
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 33
+Initial X = 9	Final (X,Y) = (9.00,0.09)	Iterations: 34
+Initial X = 10	Final (X,Y) = (8.90,0.26)	Iterations: 31
+Average iterations to converge: 32.0
+
+
+---- Cooling Coeff: 0.50 ----
+Initial X = 0	Final (X,Y) = (0.70,0.11)	Iterations: 37
+Initial X = 1	Final (X,Y) = (0.40,0.04)	Iterations: 50
+Initial X = 2	Final (X,Y) = (2.40,0.10)	Iterations: 48
+Initial X = 3	Final (X,Y) = (2.40,0.10)	Iterations: 38
+Initial X = 4	Final (X,Y) = (4.30,0.06)	Iterations: 47
+Initial X = 5	Final (X,Y) = (5.70,-0.16)	Iterations: 45
+Initial X = 6	Final (X,Y) = (4.60,-0.29)	Iterations: 44
+Initial X = 7	Final (X,Y) = (7.40,0.22)	Iterations: 42
+Initial X = 8	Final (X,Y) = (8.60,-0.18)	Iterations: 46
+Initial X = 9	Final (X,Y) = (10.00,-0.07)	Iterations: 46
+Initial X = 10	Final (X,Y) = (9.10,-0.14)	Iterations: 43
+Average iterations to converge: 44.2
+
+
+---- T: 3000 ----
+
+
+---- Cooling Coeff: 0.10 ----
+Initial X = 0	Final (X,Y) = (0.20,0.01)	Iterations: 12
+Initial X = 1	Final (X,Y) = (1.00,0.21)	Iterations: 14
+Initial X = 2	Final (X,Y) = (1.80,0.39)	Iterations: 12
+Initial X = 3	Final (X,Y) = (2.90,-0.31)	Iterations: 13
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 14
+Initial X = 5	Final (X,Y) = (4.30,0.06)	Iterations: 13
+Initial X = 6	Final (X,Y) = (6.10,-0.07)	Iterations: 13
+Initial X = 7	Final (X,Y) = (6.50,0.22)	Iterations: 11
+Initial X = 8	Final (X,Y) = (8.30,0.03)	Iterations: 15
+Initial X = 9	Final (X,Y) = (9.60,0.23)	Iterations: 14
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 14
+Average iterations to converge: 13.2
+
+
+---- Cooling Coeff: 0.20 ----
+Initial X = 0	Final (X,Y) = (0.30,0.02)	Iterations: 17
+Initial X = 1	Final (X,Y) = (0.70,0.11)	Iterations: 23
+Initial X = 2	Final (X,Y) = (1.70,0.40)	Iterations: 17
+Initial X = 3	Final (X,Y) = (3.20,-0.32)	Iterations: 20
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 20
+Initial X = 5	Final (X,Y) = (5.40,0.28)	Iterations: 18
+Initial X = 6	Final (X,Y) = (5.70,-0.16)	Iterations: 19
+Initial X = 7	Final (X,Y) = (7.00,-0.17)	Iterations: 20
+Initial X = 8	Final (X,Y) = (7.30,0.29)	Iterations: 19
+Initial X = 9	Final (X,Y) = (8.90,0.26)	Iterations: 19
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 20
+Average iterations to converge: 19.3
+
+
+---- Cooling Coeff: 0.30 ----
+Initial X = 0	Final (X,Y) = (1.00,0.21)	Iterations: 16
+Initial X = 1	Final (X,Y) = (1.10,0.24)	Iterations: 25
+Initial X = 2	Final (X,Y) = (2.30,0.18)	Iterations: 29
+Initial X = 3	Final (X,Y) = (2.90,-0.31)	Iterations: 25
+Initial X = 4	Final (X,Y) = (4.20,0.19)	Iterations: 28
+Initial X = 5	Final (X,Y) = (5.70,-0.16)	Iterations: 27
+Initial X = 6	Final (X,Y) = (6.50,0.22)	Iterations: 23
+Initial X = 7	Final (X,Y) = (7.50,0.04)	Iterations: 25
+Initial X = 8	Final (X,Y) = (8.40,-0.18)	Iterations: 28
+Initial X = 9	Final (X,Y) = (9.40,0.05)	Iterations: 26
+Initial X = 10	Final (X,Y) = (9.60,0.23)	Iterations: 24
+Average iterations to converge: 25.1
+
+
+---- Cooling Coeff: 0.40 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 35
+Initial X = 1	Final (X,Y) = (1.40,0.34)	Iterations: 32
+Initial X = 2	Final (X,Y) = (2.40,0.10)	Iterations: 40
+Initial X = 3	Final (X,Y) = (3.40,-0.17)	Iterations: 34
+Initial X = 4	Final (X,Y) = (3.80,0.27)	Iterations: 38
+Initial X = 5	Final (X,Y) = (6.00,-0.23)	Iterations: 38
+Initial X = 6	Final (X,Y) = (6.10,-0.07)	Iterations: 35
+Initial X = 7	Final (X,Y) = (7.50,0.04)	Iterations: 35
+Initial X = 8	Final (X,Y) = (7.50,0.04)	Iterations: 37
+Initial X = 9	Final (X,Y) = (9.00,0.09)	Iterations: 36
+Initial X = 10	Final (X,Y) = (9.30,-0.18)	Iterations: 35
+Average iterations to converge: 35.9
+
+
+---- Cooling Coeff: 0.50 ----
+Initial X = 0	Final (X,Y) = (0.40,0.04)	Iterations: 42
+Initial X = 1	Final (X,Y) = (0.20,0.01)	Iterations: 54
+Initial X = 2	Final (X,Y) = (2.80,-0.25)	Iterations: 54
+Initial X = 3	Final (X,Y) = (2.70,-0.18)	Iterations: 43
+Initial X = 4	Final (X,Y) = (3.90,0.33)	Iterations: 47
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 43
+Initial X = 6	Final (X,Y) = (6.40,0.30)	Iterations: 42
+Initial X = 7	Final (X,Y) = (7.20,0.20)	Iterations: 44
+Initial X = 8	Final (X,Y) = (8.80,0.23)	Iterations: 46
+Initial X = 9	Final (X,Y) = (7.60,-0.16)	Iterations: 48
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 45
+Average iterations to converge: 46.2
+
+
+---- T: 4000 ----
+
+
+---- Cooling Coeff: 0.10 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 13
+Initial X = 1	Final (X,Y) = (0.50,0.06)	Iterations: 19
+Initial X = 2	Final (X,Y) = (2.20,0.25)	Iterations: 16
+Initial X = 3	Final (X,Y) = (2.90,-0.31)	Iterations: 13
+Initial X = 4	Final (X,Y) = (3.50,-0.05)	Iterations: 19
+Initial X = 5	Final (X,Y) = (4.50,-0.21)	Iterations: 15
+Initial X = 6	Final (X,Y) = (6.30,0.25)	Iterations: 11
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 11
+Initial X = 8	Final (X,Y) = (7.30,0.29)	Iterations: 13
+Initial X = 9	Final (X,Y) = (8.70,0.04)	Iterations: 15
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 14
+Average iterations to converge: 14.5
+
+
+---- Cooling Coeff: 0.20 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 19
+Initial X = 1	Final (X,Y) = (1.20,0.28)	Iterations: 18
+Initial X = 2	Final (X,Y) = (2.20,0.25)	Iterations: 22
+Initial X = 3	Final (X,Y) = (2.50,0.01)	Iterations: 15
+Initial X = 4	Final (X,Y) = (4.50,-0.21)	Iterations: 25
+Initial X = 5	Final (X,Y) = (4.60,-0.29)	Iterations: 22
+Initial X = 6	Final (X,Y) = (5.70,-0.16)	Iterations: 19
+Initial X = 7	Final (X,Y) = (7.20,0.20)	Iterations: 18
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 19
+Initial X = 9	Final (X,Y) = (9.40,0.05)	Iterations: 20
+Initial X = 10	Final (X,Y) = (9.80,-0.21)	Iterations: 20
+Average iterations to converge: 19.7
+
+
+---- Cooling Coeff: 0.30 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 27
+Initial X = 1	Final (X,Y) = (1.10,0.24)	Iterations: 27
+Initial X = 2	Final (X,Y) = (1.60,0.39)	Iterations: 26
+Initial X = 3	Final (X,Y) = (3.50,-0.05)	Iterations: 25
+Initial X = 4	Final (X,Y) = (4.40,-0.08)	Iterations: 32
+Initial X = 5	Final (X,Y) = (4.80,-0.28)	Iterations: 30
+Initial X = 6	Final (X,Y) = (6.00,-0.23)	Iterations: 28
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 25
+Initial X = 8	Final (X,Y) = (8.60,-0.18)	Iterations: 30
+Initial X = 9	Final (X,Y) = (8.90,0.26)	Iterations: 27
+Initial X = 10	Final (X,Y) = (9.50,0.24)	Iterations: 25
+Average iterations to converge: 27.5
+
+
+---- Cooling Coeff: 0.40 ----
+Initial X = 0	Final (X,Y) = (0.90,0.17)	Iterations: 27
+Initial X = 1	Final (X,Y) = (0.20,0.01)	Iterations: 44
+Initial X = 2	Final (X,Y) = (2.00,0.35)	Iterations: 36
+Initial X = 3	Final (X,Y) = (3.30,-0.26)	Iterations: 35
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 36
+Initial X = 5	Final (X,Y) = (5.40,0.28)	Iterations: 34
+Initial X = 6	Final (X,Y) = (5.50,0.17)	Iterations: 33
+Initial X = 7	Final (X,Y) = (6.40,0.30)	Iterations: 32
+Initial X = 8	Final (X,Y) = (8.10,0.27)	Iterations: 35
+Initial X = 9	Final (X,Y) = (9.30,-0.18)	Iterations: 37
+Initial X = 10	Final (X,Y) = (9.10,-0.14)	Iterations: 35
+Average iterations to converge: 34.9
+
+
+---- Cooling Coeff: 0.50 ----
+Initial X = 0	Final (X,Y) = (1.10,0.24)	Iterations: 35
+Initial X = 1	Final (X,Y) = (0.10,0.00)	Iterations: 55
+Initial X = 2	Final (X,Y) = (3.20,-0.32)	Iterations: 56
+Initial X = 3	Final (X,Y) = (2.20,0.25)	Iterations: 38
+Initial X = 4	Final (X,Y) = (4.30,0.06)	Iterations: 49
+Initial X = 5	Final (X,Y) = (4.60,-0.29)	Iterations: 48
+Initial X = 6	Final (X,Y) = (4.90,-0.17)	Iterations: 45
+Initial X = 7	Final (X,Y) = (7.30,0.29)	Iterations: 43
+Initial X = 8	Final (X,Y) = (8.60,-0.18)	Iterations: 48
+Initial X = 9	Final (X,Y) = (8.80,0.23)	Iterations: 46
+Initial X = 10	Final (X,Y) = (9.00,0.09)	Iterations: 44
+Average iterations to converge: 46.1
+
+
+---- T: 5000 ----
+
+
+---- Cooling Coeff: 0.10 ----
+Initial X = 0	Final (X,Y) = (0.50,0.06)	Iterations: 11
+Initial X = 1	Final (X,Y) = (1.00,0.21)	Iterations: 16
+Initial X = 2	Final (X,Y) = (2.20,0.25)	Iterations: 18
+Initial X = 3	Final (X,Y) = (3.20,-0.32)	Iterations: 16
+Initial X = 4	Final (X,Y) = (4.00,0.33)	Iterations: 16
+Initial X = 5	Final (X,Y) = (4.80,-0.28)	Iterations: 18
+Initial X = 6	Final (X,Y) = (6.20,0.11)	Iterations: 14
+Initial X = 7	Final (X,Y) = (6.80,-0.26)	Iterations: 16
+Initial X = 8	Final (X,Y) = (8.30,0.03)	Iterations: 17
+Initial X = 9	Final (X,Y) = (8.70,0.04)	Iterations: 17
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 15
+Average iterations to converge: 15.8
+
+
+---- Cooling Coeff: 0.20 ----
+Initial X = 0	Final (X,Y) = (0.20,0.01)	Iterations: 20
+Initial X = 1	Final (X,Y) = (0.20,0.01)	Iterations: 30
+Initial X = 2	Final (X,Y) = (2.00,0.35)	Iterations: 22
+Initial X = 3	Final (X,Y) = (3.60,0.07)	Iterations: 18
+Initial X = 4	Final (X,Y) = (4.30,0.06)	Iterations: 25
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 19
+Initial X = 6	Final (X,Y) = (5.70,-0.16)	Iterations: 21
+Initial X = 7	Final (X,Y) = (6.70,-0.13)	Iterations: 21
+Initial X = 8	Final (X,Y) = (7.40,0.22)	Iterations: 22
+Initial X = 9	Final (X,Y) = (8.30,0.03)	Iterations: 23
+Initial X = 10	Final (X,Y) = (9.00,0.09)	Iterations: 20
+Average iterations to converge: 21.9
+
+
+---- Cooling Coeff: 0.30 ----
+Initial X = 0	Final (X,Y) = (0.50,0.06)	Iterations: 23
+Initial X = 1	Final (X,Y) = (0.30,0.02)	Iterations: 35
+Initial X = 2	Final (X,Y) = (1.70,0.40)	Iterations: 25
+Initial X = 3	Final (X,Y) = (2.40,0.10)	Iterations: 22
+Initial X = 4	Final (X,Y) = (3.90,0.33)	Iterations: 29
+Initial X = 5	Final (X,Y) = (3.70,0.18)	Iterations: 27
+Initial X = 6	Final (X,Y) = (7.80,-0.24)	Iterations: 28
+Initial X = 7	Final (X,Y) = (7.60,-0.16)	Iterations: 28
+Initial X = 8	Final (X,Y) = (7.60,-0.16)	Iterations: 30
+Initial X = 9	Final (X,Y) = (9.30,-0.18)	Iterations: 29
+Initial X = 10	Final (X,Y) = (9.10,-0.14)	Iterations: 27
+Average iterations to converge: 27.5
+
+
+---- Cooling Coeff: 0.40 ----
+Initial X = 0	Final (X,Y) = (0.10,0.00)	Iterations: 35
+Initial X = 1	Final (X,Y) = (1.20,0.28)	Iterations: 34
+Initial X = 2	Final (X,Y) = (1.60,0.39)	Iterations: 34
+Initial X = 3	Final (X,Y) = (2.50,0.01)	Iterations: 31
+Initial X = 4	Final (X,Y) = (4.80,-0.28)	Iterations: 42
+Initial X = 5	Final (X,Y) = (5.30,0.31)	Iterations: 33
+Initial X = 6	Final (X,Y) = (7.10,0.02)	Iterations: 35
+Initial X = 7	Final (X,Y) = (7.20,0.20)	Iterations: 34
+Initial X = 8	Final (X,Y) = (6.70,-0.13)	Iterations: 37
+Initial X = 9	Final (X,Y) = (8.80,0.23)	Iterations: 36
+Initial X = 10	Final (X,Y) = (9.50,0.24)	Iterations: 33
+Average iterations to converge: 34.9
+
+
+---- Cooling Coeff: 0.50 ----
+Initial X = 0	Final (X,Y) = (0.70,0.11)	Iterations: 41
+Initial X = 1	Final (X,Y) = (2.40,0.10)	Iterations: 48
+Initial X = 2	Final (X,Y) = (1.90,0.38)	Iterations: 47
+Initial X = 3	Final (X,Y) = (3.70,0.18)	Iterations: 43
+Initial X = 4	Final (X,Y) = (4.10,0.28)	Iterations: 49
+Initial X = 5	Final (X,Y) = (5.20,0.25)	Iterations: 46
+Initial X = 6	Final (X,Y) = (4.30,0.06)	Iterations: 45
+Initial X = 7	Final (X,Y) = (6.80,-0.26)	Iterations: 48
+Initial X = 8	Final (X,Y) = (8.90,0.26)	Iterations: 47
+Initial X = 9	Final (X,Y) = (8.90,0.26)	Iterations: 47
+Initial X = 10	Final (X,Y) = (9.70,0.02)	Iterations: 47
+Average iterations to converge: 46.2
