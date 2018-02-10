@@ -251,30 +251,44 @@
 
 6. Define precision and recall. List two applications where precision is more important and two applications where recall is more important.
 
+    **Prediction:** Out of all positive predictions, how many are trully positive.  
+    Important when is more important to have less FP in trade off having more FN.
+    **Recall:** Out of all positive samples, how many are correctly predicted as positive.  
+    Important when is more important to have less FN in trade off having more FP
+
 
 7. Explain the tradeoff between precision and recall.
+
+    A clf always saying yes will have 100%  recall, 0% precision and vice versa.    
 
 
 8. Define F1-measure. What is the advantage of using F1-measure as an evaluation metric?
 
+    It considers both P and R: 2PR/(P+R)
+
 
 ## Lecture-09
-1. Compare GDA and QDA in terms of parameter complexity.
-
-
 2. Explain the naive Bayes assumption.
 
+   Reduces the complexity of learning Bayesian classifiers by assuming all features are conditionnally independent given y. These assumption reduces the number of parameters to learn to 2n
 
 3. Gaussian Naive Bayes has linear decision boundary. True or False?
 
+    True
 
 4. What is Laplace smoothing? Why do we need to smooth our Naive Bayes estimates?
+ 
+    In the context of maximal likelihood, if there are no sample from the class in the subset, the mean estimate would be zero. To avoid this, we add 1 nd divide by 2 to reduce to a prior probability of 1/2
 
-
-5. Laplace smoothing is a biased smoothing. Justify.
+    `TODO` why is it a bias
 
 
 6. What are the advantages of discriminative approach over generative approach for classification?
 
+    In the case were the class conditional densities have little effect on posterior probabilities, a badly chosen generative model would underperform face to a discriminative model.  
+    In the scenario where we only care about clasification discriminative models areless complex and yiels euqally good results with less parameters to estimate.
+
 
 7. Explain the relationship between maximum likelihood and least squares
+
+    Minimizing least square error is analogous to maximizing likelihood if the errors belong to a normal distribution
