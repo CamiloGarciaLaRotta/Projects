@@ -61,7 +61,7 @@ void fill_matrix(int** matrix)
 {
   for (int i=0; i<ROWS; i++)
   {
-    for (int j=0; j<COLS; j++) { matrix[i][j] = rand() % 2; }
+    for (int j=0; j<COLS; j++) { *(*(matrix + i) + j) = rand() % 2; }
   }
 }
 
@@ -87,7 +87,7 @@ void print_matrix(int **matrix)
 {
   for (int i=0; i<ROWS; i++)
   {
-    for (int j=0; j<COLS; j++) { printf("%d\t", matrix[i][j]); }
+    for (int j=0; j<COLS; j++) { printf("%d\t", *(*(matrix + i) + j)); }
     printf("\n");
   }
   printf("\n");
@@ -127,12 +127,12 @@ void transpose_matrix(int** matrix)
 
   for (int i=0; i<ROWS; i++)
   {
-    for (int j=0; j<COLS; j++) { tmp[j][i] = matrix[i][j]; }
+    for (int j=0; j<COLS; j++) { *(*(tmp + j) + i) = *(*(matrix + i) + j); }
   }
   
   for (int i=0; i<ROWS; i++)
   {
-    for (int j=0; j<COLS; j++) { matrix[i][j] = tmp[i][j]; }
+    for (int j=0; j<COLS; j++) { *(*(matrix + i) + j) = *(*(tmp +i) + j); }
   }
 }
 
