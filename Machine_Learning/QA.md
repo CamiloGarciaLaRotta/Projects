@@ -292,3 +292,157 @@
 7. Explain the relationship between maximum likelihood and least squares
 
     Minimizing least square error is analogous to maximizing likelihood if the errors belong to a normal distribution
+
+## Lecture-10
+1. Is there a closed form solution for logistic regression? If not, why?  
+    No, it is a non linear function. But because it is a convex function we can easily apply Gradient Descent to optimize it.
+2. What is the difference between gradient descent and Newton-Raphson method?
+    - Grad. Desc. tries to find a minimum (```f'(x) = 0```) using the first derivative
+    - Newton's method tries to find a point satisfying ```f'(x) = 0``` by approximating ```f'``` with a quadratic function ```g``` and using ```f''```. This implies it has higher requirements on the smootheness of f but it converges faster.
+
+3. Derive Newton-Raphson update rule for least squares problem.  
+
+    ```TODO```
+4. Explain the geometric view of gradient descent and Newton-Raphson method
+    - Grad. Desc. approximates ```f(x)``` at each iter by a costant step times de slope of the function at that point
+    - Newton approximates ```f(x)``` at each iter by a quadratic fn ```g```  around ```x``` and takes the step at the minimum of ```g```
+5. Prove that in the absence of regularization, the maximum likelihood training for logistic regression can
+exhibit severe overfitting for datasets that are linearly separable.
+    
+    ```TODO```
+6. What are the advantages of generative models over discriminative models?  
+
+    Useful for outlier detection
+6. What are the advantages of discriminative model over generative model?  
+
+    Simpler, faster: if its simply to classify no need to find the class conditional densities. Often even better results than generative.
+8. What are the advantages of discriminative models over discriminant based models?  
+
+    We still have access to P(C|x) which allows us to:
+    - **Minimize risk**: if loss matrix is subject to change we can trivially revise minimum risk through decision theory. We would need to retrain model with discriminant based
+    - **Compensating for class priors**: e.g. for when dummy clf can still achieve 99% performance. we can balance distributions
+    - **Combining models**
+9. What is perceptron error criteria?  
+
+    We want W such that ```W.T.dot(X) * Y > 0``` for all samples
+10. What are the issues with the perceptron algorithm?
+    - the smaller the gap, the more steps to find it
+    - soln found is not unique, nor guaranteed to be optimal
+    - if data is not lin. sep. algorithm won't converge
+## Lecture-11
+1. Define margin of a decision boundary.  
+
+    Perpendicular distance between the decision boundary and the closest sample
+2. What are active constraints and inactive constraints in a constrained optimization problem?  
+
+    given t*y(x) >= 1
+    Samples for which equality holds -> ACTIVE CONTRAINTS.  
+    Else -> INACTIVE CONSTRAINTS.  
+    Informally, it means a constraint is said to be active for the closest sample to the decision boundary
+3. Argue that there will be at least one active constraint in the max-margin problem and that there will be at least two active constraints when the margin is maximized.  
+
+    This follows directly from setting ```t*y(x) = 1``` for the closest point to the boundary. It ensures there will always be at least 1 active contraint, and when maximized we will have another active constraint on the other side of the boundary.
+4. In SVMs, when will you solve the primal problem and when will you solve the dual problem?  
+
+    If N << M -> Solve the Dual (obtain a)  
+    If N >> M -> Solve the Primal (obtain w, b)
+5. What is the error function that max-margin classifier is trying to minimize?  
+
+    Hinge, Squared Hinge
+    Sum of ```E(y*t) + lambda||W||^2```
+6. What is the motivation for introducing slack variables in the max-margin optimization problem?  
+
+    To allow non-linearly separable data to be fitted (Overlapping class distirbutions).  
+    The slack variable acts as a penalty that increases with distance to the boundary
+## Lecture-12
+1. Compare the characteristics of squarred error, cross-entropy loss, and hinge loss. How are they trying
+to approximate the misclassification error? Would you prefer one loss over the other? If so, why?  
+
+    **Logistic regression error** assumes Bernoulli distribution  
+    **MSE loss** assumes Gaussian noice  
+    **Hinge loss**: samples away from the desc. bound. contribute nothing to the loss. The remaining samples are the support vectors in the context of SVM
+    **Logarithmic loss** leads to better probability estimation at the cost of accuracy
+    **Hinge loss** leads to better accuracy and some sparsity at the cost of much less sensitivity regarding probabilities
+2. What are the differences between parametric methods and non-parametric methods? Give examples
+for both methods.
+    - Non Param: inf. # of params dependent on dataset. low bias, high variance. kNN, dual SVM
+    - Param:  finite # of params ind of dataset. high bias, low variance. GDA, Log. Reg. Primall SVM
+3. Why is K-NN called a lazy classifier?  
+
+    It wont compute the estimate until query time. It simply stores the points
+4. What is the advantage of using basis functions?  
+
+    The capacity for linear models to fit non linearly separable data
+5. What are the various ways of splitting continuous valued attributes in a decision tree?  
+
+    Discretization and Binary Decision
+6. What are the different measures of node impurity?  
+
+    Gini Index, Entropy, Misclf Error
+7. What is GINI index? How would you compute GINI index for a continuous valued attribute?  
+
+    for a given node t: ```GINI(t) = 1 - sum[P(j|t)]^2``` 
+    ```P(j|t)``` being the relative frequency of class j at node t.  
+    For continous values: use binary decision based on one value.
+
+8. What is the disadvantage of using entropy as a criteria for attribute test selection in a decision tree?
+    Tends to prefer splits that result in large # of partitions each small but pure. It can be avoided with a **Gain Ratio:** Adjusts the info gain by te entropy of the partitioning. Higher entropy partitioning is penalized.
+10. Explain reduced error pruning and rule post pruning. What are the advantages of rule post pruning over reduced error pruning?
+    - **Reduced Error Prunning:** Nodes are rm only if resulting tree performs no worse than original over validation set.
+    - **Rule Post Prunning:** allow tree to grow as large as needed. Obtain set of rules that form each path. Prune each rule by rm preconditions that improve accuracy.Sort rules by accuracy, consider them in this order.
+11. What are the advantages of a decision tree classifier?
+    Inexpensive, fast, easy to interpret
+## Lecture-13
+1. What is a mixture of expert? 
+
+    Set of different learners that cover different input regions
+2. Explain the procedure for bootstrapping datasets. Why is it useful?  
+
+    Create new datasets by sampling with repetition at random the original dataset. This maintains the same bias but reduces variance.  
+    Useful because we can reduce the avg error of a model by a factor of M simply by averaging M versions of the model. The error reduction is a direct result of the variance reduction.
+3. Prove that bagging reduces variance when we bag classifiers whose errors are uncorrelated.
+    If we assume errors have zero mean and are uncorrelated:
+    ```E_comittee = 1/M E_avg```.  
+    Note ```E_comittee <= E_avg```
+4. What is the difference between bagging decision trees and random forests? Which one would you prefer
+and why?  
+
+    Random forests are collections of DT with an emphasiz on preventing OF by creating random subsets of the features and building shaloww trees. finally combining them into a final tree
+5. What are the differences between bagging and boosting?  
+
+    Bagging (//) reduces error by reducing the variance in a model.
+    Boosting (serial) reduces error by reducing bias in a model. using a sequence of weak learners to correctly predict the previous lerner's misclassified samples
+6. What is the error function that AdaBoost is trying to minimize?  
+
+    J = sum[ W I(y(x) != t)]
+
+## Lecture-14
+1. What is the optimal solution for exponential error function? How is AdaBoost trying to approximate
+it?
+
+    ```TODO```
+
+2. What is k-fold cross validation? What are the advantages and disadvantages of doing k-fold cross
+validation?  
+
+    Partitioning the Training set into k bins. use the union of k-1 for training, and 1 for validation. Final accuracy is avg of obtained accuracies
+3. Explain stacking.  
+
+    // ensemble method. Use output of multiple families of clf models as input to a meta-model. Uses cross validation performance to give more weight to good generalization models
+4. What is representation learning?  
+
+    Learning the basis function for a NN
+5. Can we add multiple linear layers in a neural network? If not, why?  
+
+    No, their combination is jsut another linear layer
+6. What type of output activation function will you use for the following scenarios:  
+
+ - When the output is a regression target -> identity fn
+ - When the output is a probability value -> [0,1] sigmoig fn
+ - When the output is a probability distribution -> softmax
+7. State universal approximation theorem. 
+
+    A network with a single layer is sufficient to represent any function, but the layer may be infeasibly large and may fail to learn and generalize correctly.
+8. What is the advantage of adding more hidden layers in a neural network? 
+
+    Reduce the size of each layer while modeling more complex fns
