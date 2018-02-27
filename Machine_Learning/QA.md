@@ -64,6 +64,15 @@
 2.  In the class, we have seen that if we use squared error loss, then the expected prediction error is minimized by the conditional mean.  
     Explain how nearest neighbor approach and least squares approach are trying to approximate this conditional mean.
 
+1. What is the Bayesian theorem?  
+    formula that describes how to update the probabilities of hypothesis given evidence.  
+
+    Say we want to know given B how likely is A to occur:
+    - **Posterior**: ```P(A|B)```
+    - **Likelihood**: ```P(B|A)```
+    - **Evidence**: ```P(B)```
+    - **Prior**: ```P(A)```
+
 3.  What is Bayes rate?  
     What does a classifier require in order to achieve this optimal error rate?
 
@@ -74,6 +83,9 @@
     P(y|x) = P(x|y)p(y) / P(x)
 
     To achieve optimal error it requires infinite training samples.
+
+    w/o ind. assumption: ```P(D,S_1-N) = P(D)P(S_1|D)P(S_2|S_1,D).....```
+    w/ ind. assumption: ```P(D,S_1-N) = P(D)P(S_1|D)P(S_2|D).....```
 
 ## Lecture-04
 1. What is the advantage of using non-linear basis functions with a linear model like linear regression?
